@@ -1,0 +1,2 @@
+class Ranking(list):
+    pass
