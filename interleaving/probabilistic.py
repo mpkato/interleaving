@@ -87,7 +87,25 @@ class Probabilistic(InterleavingMethod):
 
         Returns an instance of Ranking
         '''
-        raise NotImplementedError()
+        k = min(len(a), len(b))
+        result = Ranking()
+        result.number_of_rankers = 2
+        result.rank_to_ranker_index = []
+        rankings = [a[:], b[:]]  # Duplication
+        for i in range(k):
+            ranker_index = np.random.randint(0, 2)
+            ranking = rankings[ranker_index]
+            document = self._cumulation_cache.choice_one_of(ranking)
+            result.append(document)
+            result.rank_to_ranker_index.append(ranker_index)
+            if k <= len(result):
+                return result
+            for r_j in rankings:
+                try:
+                    r_j.remove(document)
+                    #  FIXME: list::remove is simple but slow
+                except ValueError:
+                    continue
 
     def multileave(self, *lists):
         '''performs multileaving...
@@ -121,7 +139,6 @@ class Probabilistic(InterleavingMethod):
                         #  FIXME: list::remove is simple but slow
                     except ValueError:
                         continue
-        return result
 
     def evaluate(self, ranking, clicks):
         '''evaluates rankers based on clicks
