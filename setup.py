@@ -15,7 +15,7 @@ class PyTest(TestCommand):
 
 setup(
     name = "interleaving",
-    packages = ["interleaving"],
+    packages = ["interleaving", "interleaving.simulation"],
     version = "0.0.1",
     description = "Interleaving library for ranking evaluation",
     author = "Makoto P. Kato",
