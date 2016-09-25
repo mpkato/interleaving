@@ -63,13 +63,21 @@ class CumulationCache(dict):
         self[l] = result
         return result
 
+    def choice_one_of(self, l):
+        n = len(l)
+        f = np.random.random()
+        cumulation = self[n]
+        for i in range(0, n):
+            if f < cumulation[i]:
+                return l[i]
+
 
 class Probabilistic(InterleavingMethod):
     '''Probabilistic Interleaving'''
     np.random.seed()
 
     def __init__(self, tau=3.0):
-        Probabilistic._cumulation_cache = CumulationCache(tau)
+        self._cumulation_cache = CumulationCache(tau)
 
     def interleave(self, a, b):
         '''performs interleaving...
@@ -77,7 +85,7 @@ class Probabilistic(InterleavingMethod):
         a: a list of document IDs
         b: a list of document IDs
 
-        Return an instance of Ranking
+        Returns an instance of Ranking
         '''
         raise NotImplementedError()
 
@@ -86,33 +94,25 @@ class Probabilistic(InterleavingMethod):
 
         *lists: lists of document IDs
 
-        Return an instance of Ranking
+        Returns an instance of Ranking
         '''
-
-        def select_one_document_in(ranking):
-            n = len(ranking)
-            f = np.random.random()
-            cumulation = Probabilistic._cumulation_cache[n]
-            for i in range(0, n):
-                if f < cumulation[i]:
-                    return ranking[i]
 
         k = min(map(lambda l: len(l), lists))
         result = Ranking()
-        result.ranking_indexes = []
-        result.number_of_rankings = len(lists)
+        result.rank_to_ranker_index = []
+        result.number_of_rankers = len(lists)
         rankings = []
         for original_list in lists:
-            rankings.append(original_list[:])
+            rankings.append(original_list[:])  # Duplication
         while True:
-            ranking_indexes = [i for i in range(0, len(rankings))]
-            np.random.shuffle(ranking_indexes)
-            while(0 < len(ranking_indexes)):
-                i = ranking_indexes.pop()
-                ranking_i = rankings[i]
-                document = select_one_document_in(ranking_i)
+            ranker_indexes = [i for i in range(0, len(rankings))]
+            np.random.shuffle(ranker_indexes)
+            while(0 < len(ranker_indexes)):
+                ranker_index = ranker_indexes.pop()
+                ranking = rankings[ranker_index]
+                document = self._cumulation_cache.choice_one_of(ranking)
                 result.append(document)
-                result.ranking_indexes.append(i)
+                result.rank_to_ranker_index.append(ranker_index)
                 if k <= len(result):
                     return result
                 for r_j in rankings:
@@ -136,10 +136,10 @@ class Probabilistic(InterleavingMethod):
         - (0, 1, 1): The second and third rankings won
         - (0, 0, 0): Tie
         '''
-        ranking_indexes = ranking.ranking_indexes
-        counts = [0] * ranking.number_of_rankings
+        counts = [0] * ranking.number_of_rankers
+        rank_to_ranker_index = ranking.rank_to_ranker_index
         for d in clicks:
-            counts[ranking_indexes[d]] += 1
+            counts[rank_to_ranker_index[d]] += 1
         max_count = max(counts)
         if max_count == min(counts):  # Tie
             return tuple(0 for c in counts)
