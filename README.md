@@ -20,31 +20,31 @@ This library aims to provide most of the algorithms that have been proposed in t
 
 ### Interleaving for multiple rankers
 - Team draft multileaving (to be implemented)<sup>7</sup>
-- Probabilistic multileaving (to be implemented)<sup>7</sup>
-- Optimized multileaving (to be implemented)<sup>8</sup>
+- Probabilistic multileaving<sup>8</sup>
+- Optimized multileaving (to be implemented)<sup>7</sup>
 
 ## Examples
 ```
 >>> import interleaving
->>> 
+>>>
 >>> method = interleaving.TeamDraft() # initialize an interleaving method
 >>> a = [1, 2, 3, 4, 5] # Ranking 1
 >>> b = [4, 3, 5, 1, 2] # Ranking 2
->>> 
+>>>
 >>> ranking = method.interleave(a, b) # interleaving
 >>> ranking
 [1, 4, 2, 3, 5]
->>> 
+>>>
 >>> clicks = [0, 2] # observed clicks, i.e. documents 1 and 2 are clicked
 >>> result = method.evaluate(ranking, clicks)
 >>> result # (1, 0) indicates Ranking 1 won.
 (1, 0)
->>> 
+>>>
 >>> clicks = [1, 3] # observed clicks, i.e. documents 4 and 3 are clicked
 >>> result = method.evaluate(ranking, clicks)
 >>> result # (0, 1) indicates Ranking 2 won.
 (0, 1)
->>> 
+>>>
 >>> clicks = [0, 1] # observed clicks, i.e. documents 1 and 4 are clicked
 >>> result = method.evaluate(ranking, clicks)
 >>> result # (0, 0) indicates a tie.
