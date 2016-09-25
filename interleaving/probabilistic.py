@@ -3,26 +3,35 @@ from .interleaving_method import InterleavingMethod
 import numpy as np
 
 
-class CumulationCache(dict):
+class DictDependingOnTau(dict):
+    '''is a dict which depends on a value of tau (or t)'''
+
+    def __new__(cls, tau):
+        if not hasattr(cls, '_tau_to_dict'):
+            cls._tau_to_dict = {}
+        if tau not in cls._tau_to_dict:
+            cls._tau_to_dict[tau] = dict.__new__(cls, tau)
+        return cls._tau_to_dict[tau]
+
+    def __init__(self, tau):
+        raise NotImplementedError()
+
+    def __missing__(self, n):
+        raise NotImplementedError()
+
+
+class CumulationCache(DictDependingOnTau):
     '''is a dict where n -> List l where...
 
     the item at an index i is selected in probability of
     l[i] - l[i - 1] (or just l[i] if i == 0).
     '''
-    _tau_to_instance = {}
 
-    class SumCache(dict):
+    class SumCache(DictDependingOnTau):
         '''is a dict where n -> Sum of 1 / r^t where r is in [1, n] .'''
-        _tau_to_instance = {}
 
-        class MemberCache(dict):
+        class MemberCache(DictDependingOnTau):
             '''is a dict where r -> 1 / r^t .'''
-            _tau_to_instance = {}
-
-            def __new__(cls, tau):
-                if tau not in cls._tau_to_instance:
-                    cls._tau_to_instance[tau] = dict.__new__(cls, tau)
-                return cls._tau_to_instance[tau]
 
             def __init__(self, tau):
                 self.tau = tau
@@ -31,22 +40,12 @@ class CumulationCache(dict):
                 self[r] = 1.0 / r ** self.tau
                 return self[r]
 
-        def __new__(cls, tau):
-            if tau not in cls._tau_to_instance:
-                cls._tau_to_instance[tau] = dict.__new__(cls, tau)
-            return cls._tau_to_instance[tau]
-
         def __init__(self, tau):
             self.member_cache = self.MemberCache(tau)
 
         def __missing__(self, n):
             self[n] = sum([self.member_cache[r] for r in range(1, n + 1)])
             return self[n]
-
-    def __new__(cls, tau):
-        if tau not in cls._tau_to_instance:
-            cls._tau_to_instance[tau] = dict.__new__(cls, tau)
-        return cls._tau_to_instance[tau]
 
     def __init__(self, tau):
         self.sum_cache = self.SumCache(tau)
@@ -79,6 +78,20 @@ class Probabilistic(InterleavingMethod):
     def __init__(self, tau=3.0):
         self._cumulation_cache = CumulationCache(tau)
 
+    def _advance(self, input_rankings, ranker_index, output_ranking):
+        '''choices a document in input_rankings[ranker_index].'''
+
+        ranking = input_rankings[ranker_index]
+        document = self._cumulation_cache.choice_one_of(ranking)
+        output_ranking.append(document)
+        output_ranking.rank_to_ranker_index.append(ranker_index)
+        for r_j in input_rankings:
+            try:
+                r_j.remove(document)
+                # FIXME: list::remove is simple but slow
+            except ValueError:
+                continue
+
     def interleave(self, a, b):
         '''performs interleaving...
 
@@ -87,6 +100,7 @@ class Probabilistic(InterleavingMethod):
 
         Returns an instance of Ranking
         '''
+
         k = min(len(a), len(b))
         result = Ranking()
         result.number_of_rankers = 2
@@ -94,18 +108,9 @@ class Probabilistic(InterleavingMethod):
         rankings = [a[:], b[:]]  # Duplication
         for i in range(k):
             ranker_index = np.random.randint(0, 2)
-            ranking = rankings[ranker_index]
-            document = self._cumulation_cache.choice_one_of(ranking)
-            result.append(document)
-            result.rank_to_ranker_index.append(ranker_index)
+            self._advance(rankings, ranker_index, result)
             if k <= len(result):
                 return result
-            for r_j in rankings:
-                try:
-                    r_j.remove(document)
-                    #  FIXME: list::remove is simple but slow
-                except ValueError:
-                    continue
 
     def multileave(self, *lists):
         '''performs multileaving...
@@ -117,8 +122,8 @@ class Probabilistic(InterleavingMethod):
 
         k = min(map(lambda l: len(l), lists))
         result = Ranking()
-        result.rank_to_ranker_index = []
         result.number_of_rankers = len(lists)
+        result.rank_to_ranker_index = []
         rankings = []
         for original_list in lists:
             rankings.append(original_list[:])  # Duplication
@@ -127,18 +132,9 @@ class Probabilistic(InterleavingMethod):
             np.random.shuffle(ranker_indexes)
             while(0 < len(ranker_indexes)):
                 ranker_index = ranker_indexes.pop()
-                ranking = rankings[ranker_index]
-                document = self._cumulation_cache.choice_one_of(ranking)
-                result.append(document)
-                result.rank_to_ranker_index.append(ranker_index)
+                self._advance(rankings, ranker_index, result)
                 if k <= len(result):
                     return result
-                for r_j in rankings:
-                    try:
-                        r_j.remove(document)
-                        #  FIXME: list::remove is simple but slow
-                    except ValueError:
-                        continue
 
     def evaluate(self, ranking, clicks):
         '''evaluates rankers based on clicks

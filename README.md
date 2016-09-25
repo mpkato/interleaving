@@ -15,7 +15,7 @@ This library aims to provide most of the algorithms that have been proposed in t
 
 - Balanced interleaving<sup>3</sup>
 - Team draft interleaving<sup>4</sup>
-- Probabilistic interleaving (to be implemented)<sup>5</sup>
+- Probabilistic interleaving<sup>5</sup>
 - Optimized interleaving (to be implemented)<sup>6</sup>
 
 ### Interleaving for multiple rankers
