@@ -29,4 +29,3 @@ class TestBalanced(TestMethods):
         self.evaluate(il.Balanced, ranking, [1], (1, 0))
         self.evaluate(il.Balanced, ranking, [2], (0, 1))
         self.evaluate(il.Balanced, ranking, [], (0, 0))
-
