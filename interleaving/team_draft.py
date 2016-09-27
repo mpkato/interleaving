@@ -1,6 +1,7 @@
 from .ranking import Ranking
 from .interleaving_method import InterleavingMethod
 import numpy as np
+from collections import defaultdict
 
 class TeamDraft(InterleavingMethod):
     '''
@@ -30,6 +31,45 @@ class TeamDraft(InterleavingMethod):
         result.team_a = team_a
         result.team_b = team_b
         return result
+
+    def multileave(self, *lists):
+        '''performs multileaving...
+
+        *lists: lists of document IDs
+
+        Returns an instance of Ranking
+        '''
+        k = min(map(lambda l: len(l), lists))
+        result = Ranking()
+        teams = {}
+        for i in range(len(lists)):
+            teams[i] = set()
+        empty_teams = set()
+
+        while len(result) < k:
+            selected_team = self._select_team(teams, empty_teams)
+            docs = [x for x in lists[selected_team] if not x in result]
+            if len(docs) > 0:
+                selected_doc = docs[0]
+                result.append(selected_doc)
+                teams[selected_team].add(selected_doc)
+            else:
+                empty_teams.add(selected_team)
+
+        result.teams = teams
+        return result
+
+    def _select_team(self, teams, empty_teams):
+        team_lens = [len(teams[i]) for i in teams if not i in empty_teams]
+        if len(team_lens) == 0:
+            return None
+        min_team_num = min(team_lens)
+        available_teams = [i for i in teams
+            if len(teams[i]) == min_team_num and not i in empty_teams]
+        if len(available_teams) == 0:
+            return None
+        selected_team = np.random.choice(available_teams)
+        return selected_team
 
     def evaluate(self, ranking, clicks):
         '''

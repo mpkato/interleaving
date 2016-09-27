@@ -24,6 +24,10 @@ class TestTeamDraft(TestMethods):
             assert set(res.team_a) == set([1, 2])
             assert set(res.team_b) == set([3])
 
+    def test_multileave(self):
+        self.multileave(il.TeamDraft, [1, 2], [2, 3], [(1, 2), (2, 1)])
+        self.multileave(il.TeamDraft, [1, 2], [3, 4], [(1, 3), (3, 1)])
+
     def test_evaluate(self):
         ranking = il.Ranking([1, 2])
         ranking.team_a = [1]
