@@ -73,33 +73,34 @@ class CumulationCache(DictDependingOnTau):
             node = node.next
 
 
-class RemovalList(object):
-    __slots__ = ['next_value', 'next', 'dict', 'last']
+class RemovalNode(object):
+    __slots__ = ['next_value', 'next']
 
-    class Node(object):
-        __slots__ = ['next_value', 'next']
-
-        def __init__(self, prev, value):
-            prev.next = self
-            prev.next_value = value
-            self.next = None
-            self.next_value = None
-
-        def remove_next(self):
-            self.next_value = self.next.next_value
-            self.next = self.next.next
-            return self.next_value
-
-    def __init__(self, l=[]):
+    def __init__(self, prev, value):
+        prev.next_value = value
+        prev.next = self
         self.next = None
         self.next_value = None
-        self.last = self
+
+    def remove_next(self):
+        self.next_value = self.next.next_value
+        self.next = self.next.next
+        return self.next_value
+
+
+class RemovalList(RemovalNode):
+    __slots__ = ['next_value', 'next', 'dict', 'last']
+
+    def __init__(self, l=[]):
+        self.next_value = None
+        self.next = None
         self.dict = {}
+        self.last = self
         for v in l:
             self.append(v)
 
     def append(self, value):
-        node = self.Node(self.last, value)
+        node = RemovalNode(self.last, value)
         self.dict[value] = self.last
         self.last = node
 
@@ -112,19 +113,6 @@ class RemovalList(object):
             new_next_value = prev.remove_next()
             if new_next_value is not None:
                 self.dict[new_next_value] = prev
-
-    def remove_next(self):
-        self.next_value = self.next.next_value
-        self.next = self.next.next
-        return self.next_value
-
-    def to_list(self):  # Just for debug
-        result = []
-        n = self
-        while hasattr(n, 'next'):
-            result.append(n.next_value)
-            n = n.next
-        return result
 
 
 class Probabilistic(InterleavingMethod):
