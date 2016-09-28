@@ -30,5 +30,5 @@ class TestMethods(object):
 
     def evaluate(self, method, ranking, clicks, result):
         res = method().evaluate(ranking, clicks)
-        assert res == result
+        assert set(res) == set(result)
 
