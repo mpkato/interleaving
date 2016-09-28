@@ -24,7 +24,7 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Optimized multileaving (to be implemented)<sup>7</sup>
 
 ## Examples
-```
+```python
 >>> import interleaving
 >>>
 >>> method = interleaving.TeamDraft() # initialize an interleaving method
