@@ -19,7 +19,7 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Optimized interleaving (to be implemented)<sup>6</sup>
 
 ### Interleaving for multiple rankers
-- Team draft multileaving (to be implemented)<sup>7</sup>
+- Team draft multileaving<sup>7</sup>
 - Probabilistic multileaving<sup>8</sup>
 - Optimized multileaving (to be implemented)<sup>7</sup>
 
@@ -37,18 +37,19 @@ This library aims to provide most of the algorithms that have been proposed in t
 >>>
 >>> clicks = [0, 2] # observed clicks, i.e. documents 1 and 2 are clicked
 >>> result = method.evaluate(ranking, clicks)
->>> result # (1, 0) indicates Ranking 1 won.
-(1, 0)
+>>> result # (0, 1) indicates Ranking 1 won Ranking 2.
+[(0, 1)]
 >>>
 >>> clicks = [1, 3] # observed clicks, i.e. documents 4 and 3 are clicked
 >>> result = method.evaluate(ranking, clicks)
->>> result # (0, 1) indicates Ranking 2 won.
-(0, 1)
+>>> result # (1, 0) indicates Ranking 2 won Ranking 1.
+[(1, 0)]
 >>>
 >>> clicks = [0, 1] # observed clicks, i.e. documents 1 and 4 are clicked
 >>> result = method.evaluate(ranking, clicks)
->>> result # (0, 0) indicates a tie.
-(0, 0)
+>>> result # if (0, 1) or (1, 0) does not appear in the result, 
+>>>        # it indicates a tie between Rankings 1 and 2.
+[]
 ```
 
 ## References
