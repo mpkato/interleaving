@@ -11,7 +11,7 @@ class TestProbabilisticMultileave(TestMethods):
 
     def test_sanity(self):
         rankings = [[0]]
-        assert self.pm.multileave(*rankings) == [0]
+        assert self.pm.multileave(1, *rankings) == [0]
 
     def test_uniform(self):
         rankings = [[0], [1], [2]]
@@ -19,14 +19,14 @@ class TestProbabilisticMultileave(TestMethods):
         ideal = 1.0 / l
         counts = [0.0] * l
         for i in range(0, self.nn):
-            counts[self.pm.multileave(*rankings)[0]] += 1
+            counts[self.pm.multileave(1, *rankings)[0]] += 1
         for j in range(0, l):
             self.assert_almost_equal(ideal, counts[j] / self.nn)
 
     def test_round_robin(self):
         rankings = [[0, 0, 0], [1, 1, 1], [2, 2, 2]]
         for i in range(0, self.n):
-            result = self.pm.multileave(*rankings)
+            result = self.pm.multileave(3, *rankings)
             result.sort()
             assert result == [0, 1, 2]
 
@@ -37,7 +37,7 @@ class TestProbabilisticMultileave(TestMethods):
         for d in ideals:
             counts[d] = 0.0
         for i in range(0, self.nn):
-            counts[self.pm.multileave(*rankings)[0]] += 1
+            counts[self.pm.multileave(3, *rankings)[0]] += 1
         for d in ideals:
             self.assert_almost_equal(ideals[d], counts[d] / self.nn)
 
@@ -48,7 +48,7 @@ class TestProbabilisticMultileave(TestMethods):
         for d in ideals:
             counts[d] = 0.0
         for i in range(0, self.nn):
-            counts[self.pm.multileave(*rankings)[0]] += 1
+            counts[self.pm.multileave(2, *rankings)[0]] += 1
         for d in ideals:
             self.assert_almost_equal(ideals[d], counts[d] / self.nn)
 
@@ -59,7 +59,7 @@ class TestProbabilisticMultileave(TestMethods):
             [2, 0, 1]
         ]
         for i in range(0, self.n):
-            ranking = self.pm.multileave(*rankings)
+            ranking = self.pm.multileave(3, *rankings)
             ranking.sort()
             uniq_ranking = list(set(ranking))
             uniq_ranking.sort()
@@ -67,4 +67,4 @@ class TestProbabilisticMultileave(TestMethods):
 
     def test_no_shortage(self):
         rankings = [[0], [0, 1], [0, 1, 2]]
-        assert 1 == len(self.pm.multileave(*rankings))
+        assert 1 == len(self.pm.multileave(1, *rankings))
