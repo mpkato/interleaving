@@ -6,22 +6,26 @@ from .test_methods import TestMethods
 class TestTeamDraft(TestMethods):
 
     def test_interleave(self):
-        self.interleave(il.TeamDraft, [1, 2], [2, 3], [(1, 2), (2, 1)])
-        self.interleave(il.TeamDraft, [1, 2], [3, 4], [(1, 3), (3, 1)])
+        self.interleave(il.TeamDraft, 2, [1, 2], [2, 3], [(1, 2), (2, 1)])
+        self.interleave(il.TeamDraft, 3, [1, 2], [2, 3], [(1, 2, 3), (2, 1, 3)])
+        self.interleave(il.TeamDraft, 4, [1, 2], [2, 3], [(1, 2, 3), (2, 1, 3)])
+        self.interleave(il.TeamDraft, 2, [1, 2], [3, 4], [(1, 3), (3, 1)])
+        self.interleave(il.TeamDraft, 3, [1, 2], [3, 4],
+            [(1, 3, 2), (1, 3, 4), (3, 1, 2), (3, 1, 4)])
 
         # check teams
         td = il.TeamDraft()
-        res = td.interleave([1, 2], [2, 3])
+        res = td.interleave(2, [1, 2], [2, 3])
         assert set(res.teams[0]) == set([1])
         assert set(res.teams[1]) == set([2])
 
-        res = td.interleave([1, 2], [3, 4])
+        res = td.interleave(2, [1, 2], [3, 4])
         assert set(res.teams[0]) == set([1])
         assert set(res.teams[1]) == set([3])
 
     def test_multileave(self):
-        self.multileave(il.TeamDraft, [1, 2], [2, 3], [(1, 2), (2, 1)])
-        self.multileave(il.TeamDraft, [1, 2], [3, 4], [(1, 3), (3, 1)])
+        self.multileave(il.TeamDraft, 2, [1, 2], [2, 3], [(1, 2), (2, 1)])
+        self.multileave(il.TeamDraft, 2, [1, 2], [3, 4], [(1, 3), (3, 1)])
 
     def test_evaluate(self):
         ranking = il.Ranking([1, 2])
