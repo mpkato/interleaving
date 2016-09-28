@@ -143,19 +143,21 @@ class Probabilistic(InterleavingMethod):
                  Probabilistic::interleave or Probabilistic::multileave
         clicks:  a list of indices clicked by a user
 
-        Examples of return values:
-        - (1, 0, 0): The first ranking won
-        - (0, 1, 0): The second ranking won
-        - (0, 1, 1): The second and third rankings won
-        - (0, 0, 0): Tie
+        Return a list of pairs of ranker indices
+        in which element (i, j) indicates i won j.
         '''
         counts = [0] * ranking.number_of_rankers
         rank_to_ranker_index = ranking.rank_to_ranker_index
         for d in clicks:
             counts[rank_to_ranker_index[d]] += 1
-        max_count = max(counts)
-        if max_count == min(counts):  # Tie
-            return tuple(0 for c in counts)
-        else:
-            return tuple(0 + (max_count == c) for c in counts)
-            # Note that 0 + True -> 1 and that 0 + False -> 0
+
+        result = []
+        for i in range(ranking.number_of_rankers):
+            for j in range(i+1, ranking.number_of_rankers):
+                if counts[i] > counts[j]:
+                    result.append((i, j))
+                elif counts[i] < counts[j]:
+                    result.append((j, i))
+                else: # scores[i] == scores[j]
+                    pass
+        return result
