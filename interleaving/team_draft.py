@@ -6,23 +6,22 @@ class TeamDraft(InterleavingMethod):
     '''
     Team Draft Interleaving
     '''
-    def interleave(self, a, b):
+    def interleave(self, k, a, b):
         '''
         a: a list of document IDs
         b: a list of document IDs
 
         Return an instance of Ranking
         '''
-        return self.multileave(a, b)
+        return self.multileave(k, a, b)
 
-    def multileave(self, *lists):
+    def multileave(self, k, *lists):
         '''performs multileaving...
 
         *lists: lists of document IDs
 
         Returns an instance of Ranking
         '''
-        k = min(map(lambda l: len(l), lists))
         result = Ranking()
         teams = {}
         for i in range(len(lists)):
@@ -31,6 +30,8 @@ class TeamDraft(InterleavingMethod):
 
         while len(result) < k:
             selected_team = self._select_team(teams, empty_teams)
+            if selected_team is None:
+                break
             docs = [x for x in lists[selected_team] if not x in result]
             if len(docs) > 0:
                 selected_doc = docs[0]
