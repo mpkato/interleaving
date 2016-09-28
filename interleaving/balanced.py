@@ -38,9 +38,6 @@ class Balanced(InterleavingMethod):
 
         Return a list of pairs of ranker indices
         in which element (i, j) indicates i won j.
-
-        e.g. a result [(1, 0), (2, 1), (2, 0)] indicates
-        ranker 1 won ranker 0, and ranker 2 won ranker 0 as well as ranker 1.
         '''
         result = []
         if len(clicks) == 0:
