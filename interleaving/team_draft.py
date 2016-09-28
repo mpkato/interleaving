@@ -67,8 +67,6 @@ class TeamDraft(InterleavingMethod):
         '''
         team_num = len(ranking.teams)
         result = []
-        if len(clicks) == 0:
-            return result
         scores = {i: len([c for c in clicks if ranking[c] in ranking.teams[i]])
             for i in ranking.teams}
 
