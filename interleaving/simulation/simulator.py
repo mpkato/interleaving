@@ -57,12 +57,12 @@ class Simulator(object):
             rels = self.relevance[q]
             a = ranker_a.rank(self.documents, rels)
             b = ranker_b.rank(self.documents, rels)
-            ranking = method.interleave(a[:self.topk], b[:self.topk])
+            ranking = method.interleave(self.topk, a, b)
             clicks = user.examine(ranking, rels)
             res = method.evaluate(ranking, clicks)
-            if res[0] > 0:
+            if (0, 1) in res:
                 a_win += 1
-            elif res[1] > 0:
+            elif (1, 0) in res:
                 b_win += 1
             else:
                 tie += 1
