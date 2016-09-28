@@ -79,7 +79,6 @@ class RemovalNode(object):
 
     @classmethod
     def take_one(cls):
-        print(len(cls._pool))
         if 0 < len(cls._pool):
             return cls._pool.pop()
         else:
