@@ -15,19 +15,19 @@ class TestBalanced(TestMethods):
         ranking = il.Ranking([1, 2])
         ranking.a = [1, 2]
         ranking.b = [2, 3]
-        self.evaluate(il.Balanced, ranking, [0, 1], (0, 0))
-        self.evaluate(il.Balanced, ranking, [0], (1, 0))
-        self.evaluate(il.Balanced, ranking, [1], (0, 1))
-        self.evaluate(il.Balanced, ranking, [], (0, 0))
+        self.evaluate(il.Balanced, ranking, [0, 1], [])
+        self.evaluate(il.Balanced, ranking, [0], [(0, 1)])
+        self.evaluate(il.Balanced, ranking, [1], [(1, 0)])
+        self.evaluate(il.Balanced, ranking, [], [])
 
         ranking = il.Ranking([2, 1, 3])
         ranking.a = [1, 2]
         ranking.b = [2, 3]
-        self.evaluate(il.Balanced, ranking, [0, 1, 2], (0, 0))
-        self.evaluate(il.Balanced, ranking, [0, 1], (0, 0))
-        self.evaluate(il.Balanced, ranking, [0, 2], (0, 1))
-        self.evaluate(il.Balanced, ranking, [1, 2], (0, 0))
-        self.evaluate(il.Balanced, ranking, [0], (0, 1))
-        self.evaluate(il.Balanced, ranking, [1], (1, 0))
-        self.evaluate(il.Balanced, ranking, [2], (0, 1))
-        self.evaluate(il.Balanced, ranking, [], (0, 0))
+        self.evaluate(il.Balanced, ranking, [0, 1, 2], [])
+        self.evaluate(il.Balanced, ranking, [0, 1], [])
+        self.evaluate(il.Balanced, ranking, [0, 2], [(1, 0)])
+        self.evaluate(il.Balanced, ranking, [1, 2], [])
+        self.evaluate(il.Balanced, ranking, [0], [(1, 0)])
+        self.evaluate(il.Balanced, ranking, [1], [(0, 1)])
+        self.evaluate(il.Balanced, ranking, [2], [(1, 0)])
+        self.evaluate(il.Balanced, ranking, [], [])
