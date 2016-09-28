@@ -1,7 +1,6 @@
 from .ranking import Ranking
 from .interleaving_method import InterleavingMethod
 import numpy as np
-from collections import defaultdict
 
 class TeamDraft(InterleavingMethod):
     '''
