@@ -75,14 +75,24 @@ class CumulationCache(DictDependingOnTau):
 
 class RemovalNode(object):
     __slots__ = ['next_value', 'next']
+    _pool = []
 
-    def __init__(self, prev, value):
+    @classmethod
+    def take_one(cls):
+        print(len(cls._pool))
+        if 0 < len(cls._pool):
+            return cls._pool.pop()
+        else:
+            return object.__new__(cls)
+
+    def follow(self, prev, value):
         prev.next_value = value
         prev.next = self
         self.next = None
         self.next_value = None
 
     def remove_next(self):
+        self._pool.append(self.next)
         self.next_value = self.next.next_value
         self.next = self.next.next
         return self.next_value
@@ -100,7 +110,8 @@ class RemovalList(RemovalNode):
             self.append(v)
 
     def append(self, value):
-        node = RemovalNode(self.last, value)
+        node = RemovalNode.take_one()
+        node.follow(self.last, value)
         self.dict[value] = self.last
         self.last = node
 
