@@ -6,8 +6,9 @@ class Balanced(InterleavingMethod):
     '''
     Balanced Interleaving
     '''
-    def interleave(self, a, b):
+    def interleave(self, k, a, b):
         '''
+        k: the maximum length of resultant interleaving
         a: a list of document IDs
         b: a list of document IDs
 
@@ -17,7 +18,7 @@ class Balanced(InterleavingMethod):
         result = Ranking()
         k_a = 0
         k_b = 0
-        while k_a < len(a) and k_b < len(b):
+        while k_a < len(a) and k_b < len(b) and len(result) < k:
             if (k_a < k_b) or (k_a == k_b and is_a_first):
                 if not a[k_a] in result:
                     result.append(a[k_a])

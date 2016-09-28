@@ -143,16 +143,16 @@ class Probabilistic(InterleavingMethod):
         for r_l in input_rankings:
             r_l.remove(document)
 
-    def interleave(self, a, b):
+    def interleave(self, k, a, b):
         '''performs interleaving...
 
+        k: the maximum length of resultant interleaving
         a: a list of document IDs
         b: a list of document IDs
 
         Returns an instance of Ranking
         '''
 
-        k = min(len(a), len(b))
         result = Ranking()
         result.number_of_rankers = 2
         result.rank_to_ranker_index = []
@@ -163,15 +163,15 @@ class Probabilistic(InterleavingMethod):
             if k <= len(result):
                 return result
 
-    def multileave(self, *lists):
+    def multileave(self, k, *lists):
         '''performs multileaving...
 
+        k: the maximum length of resultant multileaving
         *lists: lists of document IDs
 
         Returns an instance of Ranking
         '''
 
-        k = min(map(lambda l: len(l), lists))
         result = Ranking()
         result.number_of_rankers = len(lists)
         result.rank_to_ranker_index = []

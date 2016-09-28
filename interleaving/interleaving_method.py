@@ -2,8 +2,9 @@ class InterleavingMethod(object):
     '''
     Interleaving
     '''
-    def interleave(self, a, b):
+    def interleave(self, k, a, b):
         '''
+        k: the maximum length of resultant interleaving
         a: a list of document IDs
         b: a list of document IDs
 
@@ -11,8 +12,9 @@ class InterleavingMethod(object):
         '''
         raise NotImplementedError()
 
-    def multileave(self, *lists):
+    def multileave(self, k, *lists):
         '''
+        k: the maximum length of resultant multileaving
         *lists: lists of document IDs
 
         Return an instance of Ranking

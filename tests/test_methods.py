@@ -10,10 +10,19 @@ class TestMethods(object):
         upper_bound = (1.0 + half_error_rate) * a
         assert lower_bound <= b and b <= upper_bound
 
-    def interleave(self, method, a, b, ideals, num=100):
+    def interleave(self, method, k, a, b, ideals, num=100):
         results = []
         for i in range(num):
-            res = method().interleave(a, b)
+            res = method().interleave(k, a, b)
+            results.append(tuple(res))
+        results = set(results)
+        possible_results = set([tuple(i) for i in ideals])
+        assert results == possible_results
+
+    def multileave(self, method, k, a, b, ideals, num=100):
+        results = []
+        for i in range(num):
+            res = method().multileave(k, a, b)
             results.append(tuple(res))
         results = set(results)
         possible_results = set([tuple(i) for i in ideals])
@@ -21,5 +30,5 @@ class TestMethods(object):
 
     def evaluate(self, method, ranking, clicks, result):
         res = method().evaluate(ranking, clicks)
-        assert res == result
+        assert set(res) == set(result)
 
