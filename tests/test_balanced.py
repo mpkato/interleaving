@@ -6,8 +6,10 @@ from .test_methods import TestMethods
 class TestBalanced(TestMethods):
 
     def test_interleave(self):
-        self.interleave(il.Balanced, [1, 2], [2, 3], [(1, 2), (2, 1, 3)])
-        self.interleave(il.Balanced, [1, 2], [3, 4], [(1, 3, 2), (3, 1, 4)])
+        self.interleave(il.Balanced, 2, [1, 2], [2, 3], [(1, 2), (2, 1)])
+        self.interleave(il.Balanced, 2, [1, 2], [3, 4], [(1, 3), (3, 1)])
+        self.interleave(il.Balanced, 3, [1, 2], [2, 3], [(1, 2), (2, 1, 3)])
+        self.interleave(il.Balanced, 3, [1, 2], [3, 4], [(1, 3, 2), (3, 1, 4)])
 
     def test_evaluate(self):
         ranking = il.Ranking([1, 2])
