@@ -8,6 +8,7 @@ class TeamDraft(InterleavingMethod):
     '''
     def interleave(self, k, a, b):
         '''
+        k: the maximum length of resultant interleaving
         a: a list of document IDs
         b: a list of document IDs
 
@@ -18,6 +19,7 @@ class TeamDraft(InterleavingMethod):
     def multileave(self, k, *lists):
         '''performs multileaving...
 
+        k: the maximum length of resultant multileaving
         *lists: lists of document IDs
 
         Returns an instance of Ranking
