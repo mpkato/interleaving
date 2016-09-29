@@ -47,7 +47,7 @@ class Simulator(object):
         ranker_a: an instance of Ranker to be compared
         ranker_b: an instance of Ranker to be compared
         user: an instance of User that is assumed in the simulation
-        method: an instance of intereaving method used in the simulation
+        method: a class of intereaving method used in the simulation
 
         Return a_win (how many times a won), b_win (how_many_times b won), 
         and tie (the number of ties in the interleaving).
@@ -57,7 +57,7 @@ class Simulator(object):
             rels = self.relevance[q]
             a = ranker_a.rank(self.documents, rels)
             b = ranker_b.rank(self.documents, rels)
-            ranking = method.interleave(self.topk, a, b)
+            ranking = method(self.topk, None, a, b).interleave()
             clicks = user.examine(ranking, rels)
             res = method.evaluate(ranking, clicks)
             if (0, 1) in res:

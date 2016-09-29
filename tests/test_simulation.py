@@ -9,7 +9,7 @@ class TestSimulation(object):
         ranker_a = il.simulation.NoisyRelevanceRanker(0.00001)
         ranker_b = il.simulation.NoisyRelevanceRanker(0.00001)
         user = il.simulation.User()
-        res = sim.evaluate(ranker_a, ranker_b, user, il.TeamDraft())
+        res = sim.evaluate(ranker_a, ranker_b, user, il.TeamDraft)
         a_win, b_win, tie = res
         assert a_win == 0 and b_win == 0
 
