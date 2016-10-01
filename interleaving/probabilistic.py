@@ -124,6 +124,10 @@ class RemovalList(RemovalNode):
             if new_next_value is not None:
                 self.dict[new_next_value] = prev
 
+    def truncate(self):
+        for value in list(self.dict.keys()):
+            self.remove(value)
+
 
 class Probabilistic(InterleavingMethod):
     '''Probabilistic Interleaving'''
@@ -160,6 +164,8 @@ class Probabilistic(InterleavingMethod):
             ranker_index = np.random.randint(0, 2)
             self._advance(rankings, ranker_index, result)
             if k <= len(result):
+                for ranking in rankings:
+                    ranking.truncate()
                 return result
 
     def multileave(self, k, *lists):
@@ -185,6 +191,8 @@ class Probabilistic(InterleavingMethod):
                 ranker_index = ranker_indexes.pop()
                 self._advance(rankings, ranker_index, result)
                 if k <= len(result):
+                    for ranking in rankings:
+                        ranking.truncate()
                     return result
 
     def evaluate(self, ranking, clicks):
