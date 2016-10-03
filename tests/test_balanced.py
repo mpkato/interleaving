@@ -22,6 +22,9 @@ class TestBalanced(TestMethods):
         assert set([(1, 2), (2, 1)]) == set([tuple(r) for r in rankings])
         self.assert_almost_equal(*probabilities)
 
+        res = b.interleave()
+        assert res == [1, 2] or res == [2, 1]
+
     def test_evaluate(self):
         ranking = il.Ranking([1, 2])
         ranking.a = [1, 2]
