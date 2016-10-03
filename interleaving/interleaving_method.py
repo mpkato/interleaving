@@ -47,7 +47,7 @@ class InterleavingMethod(object):
         Return an instance of Ranking
         '''
         if self.sample_num:
-            i = np.random.multinomial(1, self._probabilities)
+            i = np.argmax(np.random.multinomial(1, self._probabilities))
             return self._rankings[i]
         else:
             return self._sample(self.max_length, self.lists)
