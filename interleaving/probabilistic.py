@@ -62,13 +62,71 @@ class CumulationCache(DictDependingOnTau):
         self[l] = result
         return result
 
-    def choice_one_of(self, l):
-        n = len(l)
+    def choice_one_of(self, r_l):
+        n = r_l.get_length()
         f = np.random.random()
         cumulation = self[n]
+        node = r_l
         for i in range(0, n):
             if f < cumulation[i]:
-                return l[i]
+                return node.next_value
+            node = node.next
+
+
+class RemovalNode(object):
+    __slots__ = ['next_value', 'next']
+    _pool = []
+
+    @classmethod
+    def take_one(cls):
+        if 0 < len(cls._pool):
+            return cls._pool.pop()
+        else:
+            return object.__new__(cls)
+
+    def follow(self, prev, value):
+        prev.next_value = value
+        prev.next = self
+        self.next = None
+        self.next_value = None
+
+    def remove_next(self):
+        self._pool.append(self.next)
+        self.next_value = self.next.next_value
+        self.next = self.next.next
+        return self.next_value
+
+
+class RemovalList(RemovalNode):
+    __slots__ = ['next_value', 'next', 'dict', 'last']
+
+    def __init__(self, l=[]):
+        self.next_value = None
+        self.next = None
+        self.dict = {}
+        self.last = self
+        for v in l:
+            self.append(v)
+
+    def append(self, value):
+        node = RemovalNode.take_one()
+        node.follow(self.last, value)
+        self.dict[value] = self.last
+        self.last = node
+
+    def get_length(self):
+        return len(self.dict)
+
+    def remove(self, value):
+        if value in self.dict:
+            prev = self.dict.pop(value)
+            new_next_value = prev.remove_next()
+            if new_next_value is not None:
+                self.dict[new_next_value] = prev
+
+    def truncate(self):
+        for value in list(self.dict.keys()):
+            self.remove(value)
 
 
 class Probabilistic(InterleavingMethod):
@@ -85,12 +143,8 @@ class Probabilistic(InterleavingMethod):
         document = self._cumulation_cache.choice_one_of(ranking)
         output_ranking.append(document)
         output_ranking.rank_to_ranker_index.append(ranker_index)
-        for r_j in input_rankings:
-            try:
-                r_j.remove(document)
-                # FIXME: list::remove is simple but slow
-            except ValueError:
-                continue
+        for r_l in input_rankings:
+            r_l.remove(document)
 
     def interleave(self, k, a, b):
         '''performs interleaving...
@@ -105,11 +159,13 @@ class Probabilistic(InterleavingMethod):
         result = Ranking()
         result.number_of_rankers = 2
         result.rank_to_ranker_index = []
-        rankings = [a[:], b[:]]  # Duplication
+        rankings = [RemovalList(a), RemovalList(b)]
         for i in range(k):
             ranker_index = np.random.randint(0, 2)
             self._advance(rankings, ranker_index, result)
             if k <= len(result):
+                for ranking in rankings:
+                    ranking.truncate()
                 return result
 
     def multileave(self, k, *lists):
@@ -126,7 +182,8 @@ class Probabilistic(InterleavingMethod):
         result.rank_to_ranker_index = []
         rankings = []
         for original_list in lists:
-            rankings.append(original_list[:])  # Duplication
+            r_l = RemovalList(original_list)
+            rankings.append(r_l)
         while True:
             ranker_indexes = [i for i in range(0, len(rankings))]
             np.random.shuffle(ranker_indexes)
@@ -134,6 +191,8 @@ class Probabilistic(InterleavingMethod):
                 ranker_index = ranker_indexes.pop()
                 self._advance(rankings, ranker_index, result)
                 if k <= len(result):
+                    for ranking in rankings:
+                        ranking.truncate()
                     return result
 
     def evaluate(self, ranking, clicks):
