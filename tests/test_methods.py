@@ -13,22 +13,22 @@ class TestMethods(object):
     def interleave(self, method, k, a, b, ideals, num=100):
         results = []
         for i in range(num):
-            res = method().interleave(k, a, b)
+            res = method(k, None, a, b).interleave()
             results.append(tuple(res))
         results = set(results)
         possible_results = set([tuple(i) for i in ideals])
         assert results == possible_results
 
-    def multileave(self, method, k, a, b, ideals, num=100):
+    def multileave(self, method, k, a, b, c, ideals, num=100):
         results = []
         for i in range(num):
-            res = method().multileave(k, a, b)
+            res = method(k, None, a, b, c).interleave()
             results.append(tuple(res))
         results = set(results)
         possible_results = set([tuple(i) for i in ideals])
         assert results == possible_results
 
     def evaluate(self, method, ranking, clicks, result):
-        res = method().evaluate(ranking, clicks)
+        res = method.evaluate(ranking, clicks)
         assert set(res) == set(result)
 
