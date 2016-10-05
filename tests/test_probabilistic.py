@@ -22,6 +22,22 @@ class TestProbabilistic(TestMethods):
         self.evaluate(il.Probabilistic, ranking, [2],       [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [],        [])
 
+    def test_init_sampling(self):
+        p = il.Probabilistic(3, 2, 100000, [1, 2], [1, 3])
+        rankings, probabilities = zip(*p.ranking_distribution)
+        ideal = set([(1, 2), (2, 1), (1, 3), (3, 1), (2, 3), (3, 2)])
+        assert ideal == set([tuple(r) for r in rankings])
+        ideal_prob = {
+            (1, 2): 0.444444444, (1, 3): 0.444444444,
+            (2, 1): 0.052469, (2, 3): 0.003086,
+            (3, 1): 0.052469, (3, 2): 0.003086
+        }
+        for ranking, prob in zip(rankings, probabilities):
+            self.assert_almost_equal(prob, ideal_prob[tuple(ranking)])
+
+        res = p.interleave()
+        assert tuple(res) in ideal
+
     def test_evaluate_multileave(self):
         ranking = il.Ranking([0, 1, 2])
         ranking.teams = {0: set([1]), 1: set([2]), 2: set([0])}

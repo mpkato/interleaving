@@ -56,10 +56,10 @@ class Probabilistic(InterleavingMethod):
                     is called.
         *lists: two lists of document IDs (no multileaving)
         '''
-        super(Probabilistic, self).__init__(max_length, sample_num, *lists)
         self._softmaxs = {}
         for i, l in enumerate(lists):
             self._softmaxs[i] = self.Softmax(tau, l)
+        super(Probabilistic, self).__init__(max_length, sample_num, *lists)
 
     def _sample(self, max_length, lists):
         '''
