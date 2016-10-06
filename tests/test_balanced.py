@@ -8,16 +8,16 @@ class TestBalanced(TestMethods):
 
     def test_raise_value_error(self):
         with pytest.raises(ValueError):
-            il.Balanced(1, None, [0], [1], [2]) # three rankings are not acceptable
+            il.Balanced([[0], [1], [2]]) # three rankings are not acceptable
 
     def test_interleave(self):
-        self.interleave(il.Balanced, 2, [1, 2], [2, 3], [(1, 2), (2, 1)])
-        self.interleave(il.Balanced, 2, [1, 2], [3, 4], [(1, 3), (3, 1)])
-        self.interleave(il.Balanced, 3, [1, 2], [2, 3], [(1, 2), (2, 1, 3)])
-        self.interleave(il.Balanced, 3, [1, 2], [3, 4], [(1, 3, 2), (3, 1, 4)])
+        self.interleave(il.Balanced, [[1, 2], [2, 3]], 2, [(1, 2), (2, 1)])
+        self.interleave(il.Balanced, [[1, 2], [3, 4]], 2, [(1, 3), (3, 1)])
+        self.interleave(il.Balanced, [[1, 2], [2, 3]], 3, [(1, 2), (2, 1, 3)])
+        self.interleave(il.Balanced, [[1, 2], [3, 4]], 3, [(1, 3, 2), (3, 1, 4)])
 
     def test_init_sampling(self):
-        b = il.Balanced(2, 100, [1, 2], [2, 3])
+        b = il.Balanced([[1, 2], [2, 3]], sample_num=100)
         rankings, probabilities = zip(*b.ranking_distribution)
         assert set([(1, 2), (2, 1)]) == set([tuple(r) for r in rankings])
         self.assert_almost_equal(*probabilities)
