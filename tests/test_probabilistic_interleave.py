@@ -8,12 +8,12 @@ class TestProbabilisticInterleave(TestMethods):
     nn = n * n  # Number of times of more probabilistic tests
 
     def test_sanity(self):
-        assert il.Probabilistic(3, 1, None, [0], [0]).interleave() == [0]
+        assert il.Probabilistic([[0], [0]]).interleave() == [0]
 
     def test_uniform(self):
         ideal = 0.5
         counts = [0.0, 0.0]
-        pm = il.Probabilistic(3, 1, None, [0], [1])
+        pm = il.Probabilistic([[0], [1]])
         for i in range(self.nn):
             r = pm.interleave()
             counts[r[0]] += 1
@@ -22,7 +22,7 @@ class TestProbabilisticInterleave(TestMethods):
 
     def test_memorylessness(self):
         result = []
-        pm = il.Probabilistic(3, 2, None, [0, 1], [2, 3])
+        pm = il.Probabilistic([[0, 1], [2, 3]])
         for i in range(self.n):
             result.extend(pm.interleave())
         result = list(set(result))
@@ -35,7 +35,7 @@ class TestProbabilisticInterleave(TestMethods):
         for d in ideals:
             counts[d] = 0.0
 
-        pm = il.Probabilistic(3, 3, None, [0, 1, 2], [0, 1, 2])
+        pm = il.Probabilistic([[0, 1, 2], [0, 1, 2]])
         for i in range(self.nn):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
@@ -47,14 +47,14 @@ class TestProbabilisticInterleave(TestMethods):
         for d in ideals:
             counts[d] = 0.0
 
-        pm = il.Probabilistic(3, 2, None, [0, 1], [1, 2])
+        pm = il.Probabilistic([[0, 1], [1, 2]])
         for i in range(self.nn):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
             self.assert_almost_equal(ideals[d], counts[d] / self.nn)
 
     def test_uniqueness(self):
-        pm = il.Probabilistic(3, 3, None, [0, 1, 2], [1, 2, 0])
+        pm = il.Probabilistic([[0, 1, 2], [1, 2, 0]])
         for i in range(self.n):
             ranking = pm.interleave()
             ranking.sort()
@@ -64,6 +64,6 @@ class TestProbabilisticInterleave(TestMethods):
 
     def test_no_shortage(self):
         rankings = [[0, 1], [0, 1, 2]]
-        pm = il.Probabilistic(3, 2, None, *rankings)
+        pm = il.Probabilistic(rankings)
         assert 2 == len(pm.interleave())
 

@@ -10,7 +10,7 @@ class TestProbabilisticMultileave(TestMethods):
 
     def test_sanity(self):
         rankings = [[0]]
-        pm = il.Probabilistic(3, 1, None, *rankings)
+        pm = il.Probabilistic(rankings)
         assert pm.interleave() == [0]
 
     def test_uniform(self):
@@ -18,7 +18,7 @@ class TestProbabilisticMultileave(TestMethods):
         l = len(rankings)
         ideal = 1.0 / l
         counts = [0.0] * l
-        pm = il.Probabilistic(3, 1, None, *rankings)
+        pm = il.Probabilistic(rankings)
         for i in range(0, self.nn):
             counts[pm.interleave()[0]] += 1
         for j in range(0, l):
@@ -26,7 +26,7 @@ class TestProbabilisticMultileave(TestMethods):
 
     def test_round_robin(self):
         rankings = [[0, 0, 0], [1, 1, 1], [2, 2, 2]]
-        pm = il.Probabilistic(3, 3, None, *rankings)
+        pm = il.Probabilistic(rankings)
         for i in range(0, self.n):
             result = pm.interleave()
             result.sort()
@@ -38,7 +38,7 @@ class TestProbabilisticMultileave(TestMethods):
         counts = {}
         for d in ideals:
             counts[d] = 0.0
-        pm = il.Probabilistic(3, 3, None, *rankings)
+        pm = il.Probabilistic(rankings)
         for i in range(0, self.nn):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
@@ -50,7 +50,7 @@ class TestProbabilisticMultileave(TestMethods):
         counts = {}
         for d in ideals:
             counts[d] = 0.0
-        pm = il.Probabilistic(3, 2, None, *rankings)
+        pm = il.Probabilistic(rankings)
         for i in range(0, self.nn):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
@@ -62,7 +62,7 @@ class TestProbabilisticMultileave(TestMethods):
             [1, 2, 0],
             [2, 0, 1]
         ]
-        pm = il.Probabilistic(3, 2, None, *rankings)
+        pm = il.Probabilistic(rankings, max_length=2)
         for i in range(0, self.n):
             ranking = pm.interleave()
             ranking.sort()
@@ -72,6 +72,6 @@ class TestProbabilisticMultileave(TestMethods):
 
     def test_no_shortage(self):
         rankings = [[0], [0, 1], [0, 1, 2]]
-        pm = il.Probabilistic(3, 1, None, *rankings)
+        pm = il.Probabilistic(rankings)
         assert 1 == len(pm.interleave())
 

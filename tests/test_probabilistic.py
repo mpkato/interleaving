@@ -24,7 +24,7 @@ class TestProbabilistic(TestMethods):
         self.evaluate(il.Probabilistic, ranking, [],        [])
 
     def test_init_sampling(self):
-        p = il.Probabilistic(3, 2, 200000, [1, 2], [1, 3])
+        p = il.Probabilistic([[1, 2], [1, 3]], sample_num=200000)
         rankings, probabilities = zip(*p.ranking_distribution)
         ideal = set([(1, 3), (1, 2), (2, 1), (2, 3), (3, 1), (3, 2)])
         assert ideal == set([tuple(r) for r in rankings])
