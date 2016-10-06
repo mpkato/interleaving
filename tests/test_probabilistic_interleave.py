@@ -16,7 +16,6 @@ class TestProbabilisticInterleave(TestMethods):
         pm = il.Probabilistic(3, 1, None, [0], [1])
         for i in range(self.nn):
             r = pm.interleave()
-            print(r)
             counts[r[0]] += 1
         for j in [0, 1]:
             self.assert_almost_equal(ideal, counts[j] / self.nn)
