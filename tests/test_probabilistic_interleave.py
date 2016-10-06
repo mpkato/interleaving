@@ -3,27 +3,28 @@ import numpy as np
 from .test_methods import TestMethods
 np.random.seed(0)
 
-
 class TestProbabilisticInterleave(TestMethods):
     n = 512     # Number of times of probabilistic tests
     nn = n * n  # Number of times of more probabilistic tests
-    pm = il.Probabilistic()
 
     def test_sanity(self):
-        assert self.pm.interleave(1, [0], [0]) == [0]
+        assert il.Probabilistic([[0], [0]]).interleave() == [0]
 
     def test_uniform(self):
         ideal = 0.5
         counts = [0.0, 0.0]
-        for i in range(0, self.nn):
-            counts[self.pm.interleave(1, [0], [1])[0]] += 1
+        pm = il.Probabilistic([[0], [1]])
+        for i in range(self.nn):
+            r = pm.interleave()
+            counts[r[0]] += 1
         for j in [0, 1]:
             self.assert_almost_equal(ideal, counts[j] / self.nn)
 
     def test_memorylessness(self):
         result = []
-        for i in range(0, self.n):
-            result.extend(self.pm.interleave(2, [0, 1], [2, 3]))
+        pm = il.Probabilistic([[0, 1], [2, 3]])
+        for i in range(self.n):
+            result.extend(pm.interleave())
         result = list(set(result))
         result.sort()
         assert result == [0, 1, 2, 3]
@@ -33,8 +34,10 @@ class TestProbabilisticInterleave(TestMethods):
         counts = {}
         for d in ideals:
             counts[d] = 0.0
-        for i in range(0, self.nn):
-            counts[self.pm.interleave(3, [0, 1, 2], [0, 1, 2])[0]] += 1
+
+        pm = il.Probabilistic([[0, 1, 2], [0, 1, 2]])
+        for i in range(self.nn):
+            counts[pm.interleave()[0]] += 1
         for d in ideals:
             self.assert_almost_equal(ideals[d], counts[d] / self.nn)
 
@@ -43,14 +46,17 @@ class TestProbabilisticInterleave(TestMethods):
         counts = {}
         for d in ideals:
             counts[d] = 0.0
-        for i in range(0, self.nn):
-            counts[self.pm.interleave(2, [0, 1], [1, 2])[0]] += 1
+
+        pm = il.Probabilistic([[0, 1], [1, 2]])
+        for i in range(self.nn):
+            counts[pm.interleave()[0]] += 1
         for d in ideals:
             self.assert_almost_equal(ideals[d], counts[d] / self.nn)
 
     def test_uniqueness(self):
-        for i in range(0, self.n):
-            ranking = self.pm.interleave(3, [0, 1, 2], [1, 2, 0])
+        pm = il.Probabilistic([[0, 1, 2], [1, 2, 0]])
+        for i in range(self.n):
+            ranking = pm.interleave()
             ranking.sort()
             uniq_ranking = list(set(ranking))
             uniq_ranking.sort()
@@ -58,4 +64,6 @@ class TestProbabilisticInterleave(TestMethods):
 
     def test_no_shortage(self):
         rankings = [[0, 1], [0, 1, 2]]
-        assert 2 == len(self.pm.interleave(2, *rankings))
+        pm = il.Probabilistic(rankings)
+        assert 2 == len(pm.interleave())
+

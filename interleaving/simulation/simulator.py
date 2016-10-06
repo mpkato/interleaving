@@ -57,7 +57,7 @@ class Simulator(object):
             rels = self.relevance[q]
             a = ranker_a.rank(self.documents, rels)
             b = ranker_b.rank(self.documents, rels)
-            ranking = method(self.topk, None, a, b).interleave()
+            ranking = method([a, b], max_length=self.topk).interleave()
             clicks = user.examine(ranking, rels)
             res = method.evaluate(ranking, clicks)
             if (0, 1) in res:

@@ -27,26 +27,26 @@ This library aims to provide most of the algorithms that have been proposed in t
 ```python
 >>> import interleaving
 >>>
->>> method = interleaving.TeamDraft() # initialize an interleaving method
 >>> a = [1, 2, 3, 4, 5] # Ranking 1
 >>> b = [4, 3, 5, 1, 2] # Ranking 2
+>>> method = interleaving.TeamDraft([a, b]) # initialize an interleaving method
 >>>
->>> ranking = method.interleave(a, b) # interleaving
+>>> ranking = method.interleave() # interleaving
 >>> ranking
 [1, 4, 2, 3, 5]
 >>>
 >>> clicks = [0, 2] # observed clicks, i.e. documents 1 and 2 are clicked
->>> result = method.evaluate(ranking, clicks)
+>>> result = interleaving.TeamDraft.evaluate(ranking, clicks)
 >>> result # (0, 1) indicates Ranking 1 won Ranking 2.
 [(0, 1)]
 >>>
 >>> clicks = [1, 3] # observed clicks, i.e. documents 4 and 3 are clicked
->>> result = method.evaluate(ranking, clicks)
+>>> result = interleaving.TeamDraft.evaluate(ranking, clicks)
 >>> result # (1, 0) indicates Ranking 2 won Ranking 1.
 [(1, 0)]
 >>>
 >>> clicks = [0, 1] # observed clicks, i.e. documents 1 and 4 are clicked
->>> result = method.evaluate(ranking, clicks)
+>>> result = interleaving.TeamDraft.evaluate(ranking, clicks)
 >>> result # if (0, 1) or (1, 0) does not appear in the result, 
 >>>        # it indicates a tie between Rankings 1 and 2.
 []
