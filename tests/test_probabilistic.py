@@ -1,6 +1,7 @@
 import interleaving as il
+import numpy as np
 from .test_methods import TestMethods
-
+np.random.seed(0)
 
 class TestProbabilistic(TestMethods):
     def test_evaluate_interleave(self):
@@ -23,14 +24,14 @@ class TestProbabilistic(TestMethods):
         self.evaluate(il.Probabilistic, ranking, [],        [])
 
     def test_init_sampling(self):
-        p = il.Probabilistic(3, 2, 100000, [1, 2], [1, 3])
+        p = il.Probabilistic(3, 2, 200000, [1, 2], [1, 3])
         rankings, probabilities = zip(*p.ranking_distribution)
-        ideal = set([(1, 2), (2, 1), (1, 3), (3, 1), (2, 3), (3, 2)])
+        ideal = set([(1, 3), (1, 2), (2, 1), (2, 3), (3, 1), (3, 2)])
         assert ideal == set([tuple(r) for r in rankings])
         ideal_prob = {
             (1, 2): 0.444444444, (1, 3): 0.444444444,
-            (2, 1): 0.052469, (2, 3): 0.003086,
-            (3, 1): 0.052469, (3, 2): 0.003086
+            (2, 1): 0.049382716, (2, 3): 0.00617284,
+            (3, 1): 0.049382716, (3, 2): 0.00617284
         }
         for ranking, prob in zip(rankings, probabilities):
             self.assert_almost_equal(prob, ideal_prob[tuple(ranking)])

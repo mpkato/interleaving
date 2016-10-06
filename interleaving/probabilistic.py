@@ -73,10 +73,13 @@ class Probabilistic(InterleavingMethod):
         result = Ranking()
         ranker_indices = list(range(len(lists)))
         result.teams = {i: set() for i in ranker_indices}
+        available_rankers = []
 
         while len(result) < max_length and len(ranker_indices) > 0:
-            rand_int = np.random.randint(0, len(ranker_indices))
-            ranker_idx = ranker_indices[rand_int]
+            if len(available_rankers) == 0:
+                available_rankers = list(ranker_indices)
+                np.random.shuffle(available_rankers)
+            ranker_idx = available_rankers.pop()
             docid = self._softmaxs[ranker_idx].sample()
             if docid is None:
                 ranker_indices.remove(ranker_idx)
