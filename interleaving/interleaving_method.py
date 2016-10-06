@@ -5,17 +5,21 @@ class InterleavingMethod(object):
     '''
     Abstract class for interleaving methods
     '''
-    def __init__(self, max_length, sample_num, *lists):
+    def __init__(self, lists, max_length=None, sample_num=None):
         '''
-        max_length: the maximum length of resultant interleaving
-        sample_num: If this is None, an interleaved ranking is generated
-                    every time when `interleave` is called.
+        lists: lists of document IDs
+        max_length: the maximum length of resultant interleaving.
+                    If this is None (default), it is set to the minimum length
+                    of the given lists.
+        sample_num: If this is None (default), an interleaved ranking is
+                    generated every time when `interleave` is called.
                     Otherwise, `sample_num` rankings are sampled in the
                     initialization, one of which is returned when `interleave`
                     is called.
-        *lists: lists of document IDs
         '''
         self.max_length = max_length
+        if self.max_length is None:
+            self.max_length = min([len(l) for l in lists])
         self.sample_num = sample_num
         self.lists = lists
         if self.sample_num:
