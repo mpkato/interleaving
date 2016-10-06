@@ -45,21 +45,25 @@ class Probabilistic(InterleavingMethod):
                     return self.ranking[i]
             return self.ranking[i]
 
-    def __init__(self, tau, max_length, sample_num, *lists):
+    def __init__(self, lists, max_length=None, sample_num=None, tau=3.0):
         '''
-        tau: a parameter that determines the probability of documents
-        max_length: the maximum length of resultant interleaving
-        sample_num: If this is None, an interleaved ranking is generated
-                    every time when `interleave` is called.
+        lists: two lists of document IDs
+        max_length: the maximum length of resultant interleaving.
+                    If this is None (default), it is set to the minimum length
+                    of the given lists.
+        sample_num: If this is None (default), an interleaved ranking is
+                    generated every time when `interleave` is called.
                     Otherwise, `sample_num` rankings are sampled in the
                     initialization, one of which is returned when `interleave`
                     is called.
-        *lists: two lists of document IDs (no multileaving)
+        tau: a parameter that determines the probability of documents
+             (default: 3.0)
         '''
         self._softmaxs = {}
         for i, l in enumerate(lists):
             self._softmaxs[i] = self.Softmax(tau, l)
-        super(Probabilistic, self).__init__(max_length, sample_num, *lists)
+        super(Probabilistic, self).__init__(lists,
+            max_length=max_length, sample_num=sample_num)
 
     def _sample(self, max_length, lists):
         '''
