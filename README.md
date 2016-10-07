@@ -16,12 +16,12 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Balanced interleaving<sup>3</sup>
 - Team draft interleaving<sup>4</sup>
 - Probabilistic interleaving<sup>5</sup>
-- Optimized interleaving (to be implemented)<sup>6</sup>
+- Optimized interleaving<sup>6</sup>
 
 ### Interleaving for multiple rankers
 - Team draft multileaving<sup>7</sup>
 - Probabilistic multileaving<sup>8</sup>
-- Optimized multileaving (to be implemented)<sup>7</sup>
+- Optimized multileaving<sup>7</sup>
 
 ## Examples
 ```python
