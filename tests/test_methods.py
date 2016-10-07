@@ -4,7 +4,7 @@ np.random.seed(0)
 
 class TestMethods(object):
 
-    def assert_almost_equal(self, a, b, error_rate=0.0001):
+    def assert_almost_equal(self, a, b, error_rate=0.01):
         assert abs(a-b) < error_rate
 
     def interleave(self, method, lists, k, ideals, num=100):
