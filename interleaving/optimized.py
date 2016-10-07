@@ -1,12 +1,15 @@
 from .ranking import Ranking
 from .interleaving_method import InterleavingMethod
 import numpy as np
+from scipy.optimize import linprog
+from collections import defaultdict
 
 class Optimized(InterleavingMethod):
     '''
     Optimized Interleaving
     '''
-    def __init__(self, lists, max_length=None, sample_num=None):
+    def __init__(self, lists, max_length=None, sample_num=None, 
+        credit_func='inverse'):
         '''
         lists: lists of document IDs
         max_length: the maximum length of resultant interleaving.
@@ -17,14 +20,24 @@ class Optimized(InterleavingMethod):
                     Otherwise, `sample_num` rankings are sampled in the
                     initialization, one of which is returned when `interleave`
                     is called.
+        credit_func: either 'inverse' (1/rank) or 'negative' (-rank)
         '''
         if sample_num is None:
             raise ValueError('sample_num cannot be None, '
                 + 'i.e. the initial sampling is necessary')
+        if credit_func == 'inverse':
+            self._credit_func = lambda x: 1.0 / x
+        elif credit_func == 'negative':
+            self._credit_func = lambda x: -x
+        else:
+            raise ValueError('credit_func should be either inverse or negative')
         super(Optimized, self).__init__(lists,
             max_length=max_length, sample_num=sample_num)
         # self._rankings (sampled rankings) is obtained here
-        self._probabilities = self._compute_probabilities(self._rankings)
+        res = self._compute_probabilities(lists, self._rankings)
+        is_success, self._probabilities, _ = res
+        if not is_success:
+            raise ValueError('Optimization failed')
 
     def _sample(self, max_length, lists):
         '''
@@ -32,53 +45,112 @@ class Optimized(InterleavingMethod):
         (Multileaved Comparisons for Fast Online Evaluation, CIKM'14)
 
         max_length: the maximum length of resultant interleaving
-        *lists: lists of document IDs
+        lists: lists of document IDs
 
         Return an instance of Ranking
         '''
         result = Ranking()
-        teams = {}
-        for i in range(len(lists)):
-            teams[i] = set()
-        empty_teams = set()
+        teams = set(range(len(lists)))
 
         while len(result) < max_length:
-            selected_team = self._select_team(teams, empty_teams)
-            if selected_team is None:
+            if len(teams) == 0:
                 break
+            selected_team = np.random.choice(list(teams))
             docs = [x for x in lists[selected_team] if not x in result]
             if len(docs) > 0:
                 selected_doc = docs[0]
                 result.append(selected_doc)
-                teams[selected_team].add(selected_doc)
             else:
-                empty_teams.add(selected_team)
+                teams.remove(selected_team)
 
-        result.teams = teams
+        # assign credits
+        result.credits = {}
+        for i in range(len(lists)):
+            result.credits[i] = defaultdict(float)
+        for docid in result:
+            for team in result.credits:
+                if docid in lists[team]:
+                    rank = lists[team].index(docid) + 1
+                    result.credits[team][docid] = self._credit_func(rank)
+
         return result
 
-    def _select_team(self, teams, empty_teams):
+    def _compute_probabilities(self, lists, rankings):
         '''
-        teams: a dict of team index and members (document IDs that belong to
-               the team)
-        empty_teams: a set of team indices that do not include available
-                     documents
+        Solve the optimization problem in
+        (Multileaved Comparisons for Fast Online Evaluation, CIKM'14)
 
-        Return a selected team index
-        '''
-        available_teams = [i for i in teams if not i in empty_teams]
-        if len(available_teams) == 0:
-            return None
-        selected_team = np.random.choice(available_teams)
-        return selected_team
-
-    def _compute_probabilities(self, rankings):
-        '''
+        lists: lists of document IDs
         rankings: a list of Ranking instances
 
         Return a list of probabilities for input rankings
         '''
-        raise NotImplementedError()
+        # probability constraints
+        A_p_sum = np.array([1]*len(rankings))
+        # unbiasedness constraints
+        ub_cons = self._unbiasedness_constraints(lists, rankings)
+        # sensitivity
+        sensitivity = self._sensitivity(lists, rankings)
+
+        # constraints
+        A_eq = np.vstack((A_p_sum, ub_cons))
+        b_eq = np.array([1.0] + [0.0]*ub_cons.shape[0])
+
+        # solving the optimization problem
+        res = linprog(sensitivity, # objective function
+            A_eq=A_eq, b_eq=b_eq, # constraints
+            bounds=[(0, 1)]*len(rankings) # 0 <= p <= 1
+            )
+        return res.success, res.x, res.fun
+
+    def _unbiasedness_constraints(self, lists, rankings):
+        '''
+        for each k and team x, for a certain c_k:
+            sum_{L_i} {p_i} * sum^k_{j=1} ranking.credits[x][d_j] = c_k
+        In other words,
+            sum_{L_i} {p_i} * sum^k_{j=1}
+                (ranking.credits[x][d_j] - ranking.credits[x+1][d_j]) = 0
+        '''
+        result = []
+        credits = np.zeros((self.max_length, len(rankings), len(lists)))
+        for rid, ranking in enumerate(rankings):
+            for idx, docid in enumerate(ranking):
+                for team in ranking.credits:
+                    credits[idx, rid, team] = ranking.credits[team][docid]
+                    if idx > 0:
+                        credits[idx, rid, team] += credits[idx-1, rid, team]
+        for i in range(len(lists) - 1):
+            result.append(credits[:, :, i] - credits[:, :, i+1])
+        result = np.vstack(result)
+        return result
+
+    def _sensitivity(self, lists, rankings):
+        '''
+        Expected variance
+        '''
+        # compute the mean of each ranking
+        mu = np.zeros(len(rankings))
+        for rid, ranking in enumerate(rankings):
+            for idx, docid in enumerate(ranking):
+                click_prob = 1.0 / (idx + 1)
+                credit = np.sum(
+                    [ranking.credits[x][docid] for x in ranking.credits])
+                mu[rid] += click_prob * credit
+        mu /= len(lists)
+
+        # compute the variance
+        var = np.zeros(len(rankings))
+        for rid, ranking in enumerate(rankings):
+            for x in ranking.credits:
+                v = 0.0
+                for idx, docid in enumerate(ranking):
+                    click_prob = 1.0 / (idx + 1)
+                    if docid in ranking.credits[x]:
+                        v += click_prob * ranking.credits[x][docid]
+                v -= mu[rid]
+                var[rid] += v ** 2
+
+        return var
 
     @classmethod
     def _compute_scores(cls, ranking, clicks):
