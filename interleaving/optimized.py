@@ -71,7 +71,9 @@ class Optimized(InterleavingMethod):
             for team in result.credits:
                 if docid in lists[team]:
                     rank = lists[team].index(docid) + 1
-                    result.credits[team][docid] = self._credit_func(rank)
+                else:
+                    rank = len(lists[team]) + 1
+                result.credits[team][docid] = self._credit_func(rank)
 
         return result
 
@@ -160,6 +162,5 @@ class Optimized(InterleavingMethod):
 
         Return a list of scores of each ranker.
         '''
-        return {i: len([c for c in clicks if ranking[c] in ranking.teams[i]])
-            for i in ranking.teams}
-
+        return {i: sum([ranking.credits[i][ranking[c]] for c in clicks])
+            for i in ranking.credits}
