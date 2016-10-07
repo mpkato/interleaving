@@ -25,7 +25,25 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Probabilistic multileaving<sup>8</sup>
 - Optimized multileaving<sup>7</sup>
 
-## Examples
+## Prerequisites
+- Numpy
+- Scipy
+
+## Installation
+`interleaving` and its prerequisites can be installed by
+
+```bash
+$ pip install git+https://github.com/mpkato/interleaving.git
+```
+
+An alternative can be
+```bash
+$ git clone git+https://github.com/mpkato/interleaving.git
+$ cd interleaving
+$ python setup.py install
+```
+
+## Usage
 ```python
 >>> import interleaving
 >>>
