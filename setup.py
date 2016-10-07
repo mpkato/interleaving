@@ -23,7 +23,8 @@ setup(
     url = "https://github.com/mpkato/interleaving",
     entry_points='',
     install_requires = [
-        'numpy'
+        'numpy',
+        'scipy'
     ],
     tests_require=['pytest'],
     cmdclass = {'test': PyTest}
