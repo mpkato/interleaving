@@ -1,6 +1,8 @@
 # Interleaving
 A python library for conducting **interleaving**, which comparing two or multiple rankers based on observed user clicks by **interleaving** their results.
 
+[![Circle CI](https://circleci.com/gh/mpkato/interleaving.svg?&style=shield)](https://circleci.com/gh/mpkato/interleaving)
+
 ## Introduction
 A/B testing is a well-known technique for comparing two or more systems based on user behaviors in a production environment,
 and has been used for improving the quality of systems in many services.
