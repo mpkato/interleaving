@@ -25,6 +25,18 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Probabilistic multileaving<sup>8</sup>
 - Optimized multileaving<sup>7</sup>
 
+Note that probabilistic interleaving and probabilistic multileaving use
+different strategies to select a ranker from which a document is selected.
+In the original papers,
+probabilistic interleaving samples a ranker with replacement,
+i.e. one of the two rankers is sampled at every document selection.
+Probabilistic multileaving samples a ranker without replacement.
+Let D be a set of all the rankers.
+A ranker is sampled from D without replacement.
+When D is empty, all the rankers are put into D again.
+`Probabilistic` has an keyword argument `replace` by which either of these 
+strategies can be used.
+
 ## Prerequisites
 - Numpy
 - Scipy
