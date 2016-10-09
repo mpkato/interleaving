@@ -26,7 +26,7 @@ class TestProbabilisticInterleave(TestMethods):
         pm = il.Probabilistic([[1, 2, 3], [2, 3, 1]])
         for i in range(self.nn):
             result[pm.interleave()] += 1
-        assert len(result) == 24
+        assert len(result) == 48
 
     def test_memorylessness(self):
         result = []
