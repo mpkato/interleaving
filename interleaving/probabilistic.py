@@ -1,4 +1,4 @@
-from .ranking import Ranking
+from .ranking import TeamRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 import copy
@@ -74,9 +74,8 @@ class Probabilistic(InterleavingMethod):
 
         Return an instance of Ranking
         '''
-        result = Ranking()
         ranker_indices = list(range(len(lists)))
-        result.teams = {i: set() for i in ranker_indices}
+        result = TeamRanking(ranker_indices)
         available_rankers = []
 
         while len(result) < max_length and len(ranker_indices) > 0:

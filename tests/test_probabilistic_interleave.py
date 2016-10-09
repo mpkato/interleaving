@@ -1,5 +1,6 @@
 import interleaving as il
 import numpy as np
+from collections import defaultdict
 from .test_methods import TestMethods
 np.random.seed(0)
 
@@ -19,6 +20,13 @@ class TestProbabilisticInterleave(TestMethods):
             counts[r[0]] += 1
         for j in [0, 1]:
             self.assert_almost_equal(ideal, counts[j] / self.nn)
+
+    def test_ranking_with_teams(self):
+        result = defaultdict(int)
+        pm = il.Probabilistic([[1, 2, 3], [2, 3, 1]])
+        for i in range(self.nn):
+            result[pm.interleave()] += 1
+        assert len(result) == 24
 
     def test_memorylessness(self):
         result = []
