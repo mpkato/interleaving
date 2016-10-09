@@ -45,7 +45,8 @@ class Probabilistic(InterleavingMethod):
                     return self.ranking[i]
             return self.ranking[i]
 
-    def __init__(self, lists, max_length=None, sample_num=None, tau=3.0):
+    def __init__(self, lists, max_length=None, sample_num=None, 
+        tau=3.0, replace=True):
         '''
         lists: two lists of document IDs
         max_length: the maximum length of resultant interleaving.
@@ -58,8 +59,13 @@ class Probabilistic(InterleavingMethod):
                     is called.
         tau: a parameter that determines the probability of documents
              (default: 3.0)
+        replace: rankings are sampled with replacement if it is True.
+                          Otherwise, they are sampled without replacement,
+                          e.g. given two rankings A and B, one of them is 
+                          sampled first and then another is used.
         '''
         self._softmaxs = {}
+        self._replace = replace
         for i, l in enumerate(lists):
             self._softmaxs[i] = self.Softmax(tau, l)
         super(Probabilistic, self).__init__(lists,
@@ -82,10 +88,14 @@ class Probabilistic(InterleavingMethod):
             if len(available_rankers) == 0:
                 available_rankers = list(ranker_indices)
                 np.random.shuffle(available_rankers)
-            ranker_idx = available_rankers.pop()
+            if self._replace:
+                ranker_idx = np.random.choice(available_rankers)
+            else:
+                ranker_idx = available_rankers.pop()
             docid = self._softmaxs[ranker_idx].sample()
             if docid is None:
                 ranker_indices.remove(ranker_idx)
+                available_rankers = list(ranker_indices)
             else:
                 result.append(docid)
                 result.teams[ranker_idx].add(docid)
