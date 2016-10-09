@@ -24,6 +24,11 @@ class TestTeamDraft(TestMethods):
         assert set(res.teams[0]) == set([1])
         assert set(res.teams[1]) == set([3])
 
+    def test_team_draft_ranking(self):
+        td = il.TeamDraft([[1, 2, 3], [2, 3, 1]], sample_num=100)
+        rankings, distributions = zip(*td.ranking_distribution)
+        assert len(rankings) == 4
+
     def test_multileave(self):
         self.interleave(il.TeamDraft, [[1, 2], [2, 3], [3, 4]], 2,
             [(1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)])

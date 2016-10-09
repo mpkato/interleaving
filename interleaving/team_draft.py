@@ -1,4 +1,4 @@
-from .ranking import Ranking
+from .ranking import TeamRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 
@@ -13,27 +13,23 @@ class TeamDraft(InterleavingMethod):
         max_length: the maximum length of resultant interleaving
         *lists: lists of document IDs
 
-        Return an instance of Ranking
+        Return an instance of TeamDraftRanking
         '''
-        result = Ranking()
-        teams = {}
-        for i in range(len(lists)):
-            teams[i] = set()
+        result = TeamRanking(range(len(lists)))
         empty_teams = set()
 
         while len(result) < max_length:
-            selected_team = self._select_team(teams, empty_teams)
+            selected_team = self._select_team(result.teams, empty_teams)
             if selected_team is None:
                 break
             docs = [x for x in lists[selected_team] if not x in result]
             if len(docs) > 0:
                 selected_doc = docs[0]
                 result.append(selected_doc)
-                teams[selected_team].add(selected_doc)
+                result.teams[selected_team].add(selected_doc)
             else:
                 empty_teams.add(selected_team)
 
-        result.teams = teams
         return result
 
     def _select_team(self, teams, empty_teams):
