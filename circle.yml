@@ -2,3 +2,5 @@ dependencies:
     pre:
         - pip install --upgrade setuptools
         - pip install --upgrade pip
+        - pip install numpy
+        - pip install scipy

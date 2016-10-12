@@ -21,13 +21,6 @@ setup(
     author_email = "kato@dl.kuis.kyoto-u.ac.jp",
     license     = "MIT License",
     url = "https://github.com/mpkato/interleaving",
-    setup_requires = [
-        'numpy'
-    ],
-    install_requires = [
-        'numpy',
-        'scipy'
-    ],
     tests_require=['pytest'],
     cmdclass = {'test': PyTest}
 )
