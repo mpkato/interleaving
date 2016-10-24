@@ -26,6 +26,7 @@ class TestTeamDraft(TestMethods):
 
     def test_team_draft_ranking(self):
         td = il.TeamDraft([[1, 2, 3], [2, 3, 1]], sample_num=100)
+        td.dump_rankings('./tmp_tdm.json')
         rankings, distributions = zip(*td.ranking_distribution)
         assert len(rankings) == 4
 

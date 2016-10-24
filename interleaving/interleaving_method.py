@@ -1,4 +1,5 @@
 from collections import defaultdict
+import json
 import numpy as np
 
 class InterleavingMethod(object):
@@ -45,6 +46,30 @@ class InterleavingMethod(object):
         Return an instance of Ranking
         '''
         raise NotImplementedError()
+
+    def dump_rankings(self, path):
+        '''
+        Dump the sampled rankings into a file
+        '''
+        result = {}
+        for rid, ranking in enumerate(self._rankings):
+            key = hash(ranking)
+            ranking_dict = {
+                'ranking_list': ranking,
+            }
+            if 'teams' in ranking.__dict__:
+                team_dict = {}
+                for tid, s in ranking.teams.items():
+                    team_dict[tid] = list(s)
+                ranking_dict['teams'] = team_dict
+            if 'credits' in ranking.__dict__:
+                ranking_dict['credits'] = ranking.credits
+            result[key] = {
+                'probability': self._probabilities[rid],
+                'ranking': ranking_dict,
+            }
+        with open(path, 'w') as f:
+            json.dump(result, f, indent='    ')
 
     def interleave(self):
         '''

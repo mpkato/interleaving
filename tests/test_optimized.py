@@ -13,6 +13,7 @@ class TestOptimized(TestMethods):
 
     def test_init_sampling(self):
         b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
+        b.dump_rankings('./tmp_om.json')
         samples = set([tuple(b.interleave()) for i in range(1000)])
         assert len(samples) == 3
         assert (1, 2) in samples
