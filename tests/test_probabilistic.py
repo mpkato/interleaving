@@ -7,16 +7,14 @@ np.random.seed(0)
 
 class TestProbabilistic(TestMethods):
     def test_evaluate_interleave(self):
-        ranking = TeamRanking([0, 1])
-        ranking += [10, 20]
+        ranking = TeamRanking(team_indices=[0, 1], contents=[10, 20])
         ranking.teams = {0: set([10]), 1: set([20])}
         self.evaluate(il.Probabilistic, ranking, [0, 1], [])
         self.evaluate(il.Probabilistic, ranking, [0],    [(0, 1)])
         self.evaluate(il.Probabilistic, ranking, [1],    [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [],     [])
 
-        ranking = TeamRanking([0, 1])
-        ranking += [2, 1, 3]
+        ranking = TeamRanking(team_indices=[0, 1], contents=[2, 1, 3])
         ranking.teams = {0: set([2]), 1: set([1, 3])}
         self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [0, 2],    [])
@@ -68,8 +66,7 @@ class TestProbabilistic(TestMethods):
             assert i2 in l1
 
     def test_evaluate_multileave(self):
-        ranking = TeamRanking([0, 1, 2])
-        ranking += [0, 1, 2]
+        ranking = TeamRanking(team_indices=[0, 1, 2], contents=[0, 1, 2])
         ranking.teams = {0: set([1]), 1: set([2]), 2: set([0])}
         self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [])
         self.evaluate(il.Probabilistic, ranking, [0, 2],    [(2, 0), (1, 0)])

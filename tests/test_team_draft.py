@@ -38,8 +38,7 @@ class TestTeamDraft(TestMethods):
             [(1, 3), (1, 5), (3, 1), (3, 5), (5, 1), (5, 3)])
 
     def test_evaluate(self):
-        ranking = TeamRanking([0, 1])
-        ranking += [1, 2]
+        ranking = TeamRanking(team_indices=[0, 1], contents=[1, 2])
         ranking.teams = {}
         ranking.teams[0] = [1]
         ranking.teams[1] = [2]
@@ -48,8 +47,7 @@ class TestTeamDraft(TestMethods):
         self.evaluate(il.TeamDraft, ranking, [1], [(1, 0)])
         self.evaluate(il.TeamDraft, ranking, [], [])
 
-        ranking = TeamRanking([0, 1])
-        ranking += [1, 3, 4]
+        ranking = TeamRanking(team_indices=[0, 1], contents=[1, 3, 4])
         ranking.teams = {}
         ranking.teams[0] = [1]
         ranking.teams[1] = [3, 4]

@@ -22,14 +22,16 @@ class CreditRanking(list):
     including credits
     '''
     __slots__ = ['credits']
-    def __init__(self, lists):
+    def __init__(self, num_rankers, contents=[]):
         '''
         Initialize self.credits
 
-        lists: lists of document IDs
+        num_rankers: number of rankers
+        contents:    initial list of document IDs (optional)
         '''
+        self += contents
         self.credits = {}
-        for i in range(len(lists)):
+        for i in range(num_rankers):
             self.credits[i] = defaultdict(float)
 
     def __hash__(self):
@@ -53,12 +55,14 @@ class TeamRanking(list):
     including teams
     '''
     __slots__ = ['teams']
-    def __init__(self, team_indices):
+    def __init__(self, team_indices, contents=[]):
         '''
         Initialize self.teams
 
         team_indices: indices for self.teams
+        contents:    initial list of document IDs (optional)
         '''
+        self += contents
         self.teams = {i: set() for i in team_indices}
 
     def __hash__(self):

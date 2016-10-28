@@ -1,7 +1,6 @@
 from .ranking import TeamRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
-import copy
 
 class Probabilistic(InterleavingMethod):
     '''
@@ -45,7 +44,7 @@ class Probabilistic(InterleavingMethod):
                     return self.ranking[i]
             return self.ranking[i]
 
-    def __init__(self, lists, max_length=None, sample_num=None, 
+    def __init__(self, lists, max_length=None, sample_num=None,
         tau=3.0, replace=True):
         '''
         lists: two lists of document IDs
@@ -61,7 +60,7 @@ class Probabilistic(InterleavingMethod):
              (default: 3.0)
         replace: rankings are sampled with replacement if it is True.
                           Otherwise, they are sampled without replacement,
-                          e.g. given two rankings A and B, one of them is 
+                          e.g. given two rankings A and B, one of them is
                           sampled first and then another is used.
         '''
         self._softmaxs = {}

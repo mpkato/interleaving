@@ -2,7 +2,6 @@ from .ranking import CreditRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 from scipy.optimize import linprog
-from collections import defaultdict
 
 class Optimized(InterleavingMethod):
     '''
@@ -49,8 +48,9 @@ class Optimized(InterleavingMethod):
 
         Return an instance of Ranking
         '''
-        result = CreditRanking(lists)
-        teams = set(range(len(lists)))
+        num_rankers = len(lists)
+        result = CreditRanking(num_rankers)
+        teams = set(range(num_rankers))
 
         while len(result) < max_length:
             if len(teams) == 0:

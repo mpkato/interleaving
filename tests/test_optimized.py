@@ -67,18 +67,15 @@ class TestOptimized(TestMethods):
         lists = [[1, 2], [1, 3], [1, 4]]
         b = il.Optimized(lists, sample_num=100)
         rankings = []
-        r = CreditRanking(lists)
-        r += [1, 2]
+        r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {
             0: {1: 1.0, 2: 0.5}, 1: {1: 1.0, 2: 1.0/3}, 2: {1: 1.0, 2: 1.0/3}}
         rankings.append(r)
-        r = CreditRanking(lists)
-        r += [1, 3]
+        r = CreditRanking(num_rankers=len(lists), contents=[1, 3])
         r.credits = {
             0: {1: 1.0, 3: 1.0/3}, 1: {1: 1.0, 3: 0.5}, 2: {1: 1.0, 3: 1.0/3}}
         rankings.append(r)
-        r = CreditRanking(lists)
-        r += [1, 4]
+        r = CreditRanking(num_rankers=len(lists), contents=[1, 4])
         r.credits = {
             0: {1: 1.0, 4: 1.0/3}, 1: {1: 1.0, 4: 1.0/3}, 2: {1: 1.0, 4: 0.5}}
         rankings.append(r)
@@ -105,16 +102,13 @@ class TestOptimized(TestMethods):
         lists = [[1, 2], [2, 3]]
         b = il.Optimized(lists, sample_num=100)
         rankings = []
-        r = CreditRanking(lists)
-        r += [1, 2]
+        r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = CreditRanking(lists)
-        r += [2, 1]
+        r = CreditRanking(num_rankers=len(lists), contents=[2, 1])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = CreditRanking(lists)
-        r += [2, 3]
+        r = CreditRanking(num_rankers=len(lists), contents=[2, 3])
         r.credits = {0: {2: 0.5, 3: 1.0/3}, 1: {2: 1.0, 3: 0.5}}
         rankings.append(r)
         res = b._sensitivity(lists, rankings)
@@ -128,16 +122,13 @@ class TestOptimized(TestMethods):
         lists = [[1, 2], [2, 3]]
         b = il.Optimized(lists, sample_num=100)
         rankings = []
-        r = CreditRanking(lists)
-        r += [1, 2]
+        r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = CreditRanking(lists)
-        r += [2, 1]
+        r = CreditRanking(num_rankers=len(lists), contents=[2, 1])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = CreditRanking(lists)
-        r += [2, 3]
+        r = CreditRanking(num_rankers=len(lists), contents=[2, 3])
         r.credits = {0: {2: 0.5, 3: 1.0/3}, 1: {2: 1.0, 3: 0.5}}
         rankings.append(r)
         is_success, p, minimum = b._compute_probabilities(lists, rankings)
