@@ -37,13 +37,11 @@ class TestOptimized(TestMethods):
         # Test credits
         l1 = [r.credits for r in b._rankings]
         l2 = [v['ranking']['credits'] for v in obj.values()]
-        assert len(l1) == len(l2)
-        for i1 in l1:
-            i1 = {str(k): {str(kk): vv for kk, vv in v.items()} for k, v in i1.items()}
-            assert i1 in l2
-        for i2 in l2:
-            i2 = {int(k): {int(kk): vv for kk, vv in v.items()} for k, v in i2.items()}
-            assert i2 in l1
+        f = lambda d: {int(k): v for k, v in d.items()}
+        for index, item in enumerate(l2):
+            l2[index] = {int(k): f(v) for k, v in item.items()}
+        g = lambda d: sorted((k, sorted(v.items())) for k, v in d.items())
+        assert sorted(g(i1) for i1 in l1) == sorted(g(i2) for i2 in l2)
 
     def test__unbiasedness_constraints(self):
         lists = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]

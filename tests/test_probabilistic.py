@@ -55,15 +55,10 @@ class TestProbabilistic(TestMethods):
         l2 = sorted([v['ranking']['ranking_list'] for v in obj.values()])
         assert l1 == l2
         # Test teams
-        l1 = [r.teams for r in p._rankings]
-        l2 = [v['ranking']['teams'] for v in obj.values()]
-        assert len(l1) == len(l2)
-        for i1 in l1:
-            i1 = {str(k): list(v) for k, v in i1.items()}
-            assert i1 in l2
-        for i2 in l2:
-            i2 = {int(k): set(v) for k, v in i2.items()}
-            assert i2 in l1
+        f = lambda d: {str(k): sorted(list(s)) for k, s in d.items()}
+        l1 = [sorted(f(r.teams).items()) for r in p._rankings]
+        l2 = [sorted(v['ranking']['teams'].items()) for v in obj.values()]
+        assert sorted(l1) == sorted(l2)
 
     def test_evaluate_multileave(self):
         ranking = TeamRanking(team_indices=[0, 1, 2], contents=[0, 1, 2])

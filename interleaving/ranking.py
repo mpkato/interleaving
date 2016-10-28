@@ -60,7 +60,7 @@ class TeamRanking(list):
         Initialize self.teams
 
         team_indices: indices for self.teams
-        contents:    initial list of document IDs (optional)
+        contents:     initial list of document IDs (optional)
         '''
         self += contents
         self.teams = {i: set() for i in team_indices}
@@ -79,7 +79,7 @@ class TeamRanking(list):
     def dumpd(self):
         team_dict = {}
         for tid, s in self.teams.items():
-            team_dict[tid] = list(s)
+            team_dict[tid] = sorted(list(s))
         return {
             'ranking_list': self,
             'teams': team_dict,
