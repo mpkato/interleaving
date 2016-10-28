@@ -1,5 +1,6 @@
 import interleaving as il
 from interleaving import BalancedRanking
+import json
 import numpy as np
 import pytest
 np.random.seed(0)
@@ -25,6 +26,28 @@ class TestBalanced(TestMethods):
 
         res = b.interleave()
         assert res == [1, 2] or res == [2, 1]
+
+    def test_dump(self, tmpdir):
+        tmpfile = str(tmpdir) + '/balanced.json'
+        b = il.Balanced([[1, 2], [2, 3]], sample_num=100)
+        b.dump_rankings(tmpfile)
+        with open(tmpfile, 'r') as f:
+            obj = json.load(f)
+        # Test keys
+        s = {str(hash(r)) for r in b._rankings}
+        assert s == set(obj.keys())
+        # Test rankings
+        l1 = sorted(b._rankings)
+        l2 = sorted([v['ranking']['ranking_list'] for v in obj.values()])
+        assert l1 == l2
+        # Test a
+        l1 = sorted([r.a for r in b._rankings])
+        l2 = sorted([v['ranking']['a'] for v in obj.values()])
+        assert l1 == l2
+        # Test b
+        l1 = sorted([r.b for r in b._rankings])
+        l2 = sorted([v['ranking']['b'] for v in obj.values()])
+        assert l1 == l2
 
     def test_evaluate(self):
         ranking = BalancedRanking([1, 2])

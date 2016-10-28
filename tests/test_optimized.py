@@ -21,17 +21,29 @@ class TestOptimized(TestMethods):
         assert (2, 1) in samples
         assert (2, 3) in samples
 
-    # def test_dump(self, tmpdir):
-        # tmpfile = str(tmpdir) + '/optimized.json'
-        # b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
-        # b.dump_rankings(tmpfile)
-        # with open(tmpfile, 'r') as f:
-            # obj = json.load(f)
-        # # Test |rankings|
-        # assert len(b._rankings) == len(obj)
-        # # Test keys
-        # l = sorted([str(hash(r)) for r in b._rankings])
-        # assert l == sorted(obj.keys())
+    def test_dump(self, tmpdir):
+        tmpfile = str(tmpdir) + '/optimized.json'
+        b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
+        b.dump_rankings(tmpfile)
+        with open(tmpfile, 'r') as f:
+            obj = json.load(f)
+        # Test keys
+        s = {str(hash(r)) for r in b._rankings}
+        assert s == set(obj.keys())
+        # Test rankings
+        l1 = sorted(b._rankings)
+        l2 = sorted([v['ranking']['ranking_list'] for v in obj.values()])
+        assert l1 == l2
+        # Test credits
+        l1 = [r.credits for r in b._rankings]
+        l2 = [v['ranking']['credits'] for v in obj.values()]
+        assert len(l1) == len(l2)
+        for i1 in l1:
+            i1 = {str(k): {str(kk): vv for kk, vv in v.items()} for k, v in i1.items()}
+            assert i1 in l2
+        for i2 in l2:
+            i2 = {int(k): {int(kk): vv for kk, vv in v.items()} for k, v in i2.items()}
+            assert i2 in l1
 
     def test__unbiasedness_constraints(self):
         lists = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]

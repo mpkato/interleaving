@@ -53,20 +53,9 @@ class InterleavingMethod(object):
         '''
         result = {}
         for rid, ranking in enumerate(self._rankings):
-            key = hash(ranking)
-            ranking_dict = {
-                'ranking_list': ranking,
-            }
-            if 'teams' in ranking.__dict__:  # For TeamDraft
-                team_dict = {}
-                for tid, s in ranking.teams.items():
-                    team_dict[tid] = list(s)
-                ranking_dict['teams'] = team_dict
-            if 'credits' in ranking.__dict__:  # For Optimized
-                ranking_dict['credits'] = ranking.credits
-            result[key] = {
+            result[hash(ranking)] = {
                 'probability': self._probabilities[rid],
-                'ranking': ranking_dict,
+                'ranking': ranking.dumpd(),
             }
         with open(file, 'w') as f:
             json.dump(result, f, indent='    ')

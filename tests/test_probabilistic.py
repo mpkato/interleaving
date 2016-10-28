@@ -1,5 +1,6 @@
 import interleaving as il
 from interleaving import TeamRanking
+import json
 import numpy as np
 from .test_methods import TestMethods
 np.random.seed(0)
@@ -41,6 +42,30 @@ class TestProbabilistic(TestMethods):
 
         res = p.interleave()
         assert tuple(res) in ideal
+
+    def test_dump(self, tmpdir):
+        tmpfile = str(tmpdir) + '/probabilistic.json'
+        p = il.Probabilistic([[1, 2], [1, 3]], sample_num=10, replace=False)
+        p.dump_rankings(tmpfile)
+        with open(tmpfile, 'r') as f:
+            obj = json.load(f)
+        # Test keys
+        s = {str(hash(r)) for r in p._rankings}
+        assert s == set(obj.keys())
+        # Test rankings
+        l1 = sorted(p._rankings)
+        l2 = sorted([v['ranking']['ranking_list'] for v in obj.values()])
+        assert l1 == l2
+        # Test teams
+        l1 = [r.teams for r in p._rankings]
+        l2 = [v['ranking']['teams'] for v in obj.values()]
+        assert len(l1) == len(l2)
+        for i1 in l1:
+            i1 = {str(k): list(v) for k, v in i1.items()}
+            assert i1 in l2
+        for i2 in l2:
+            i2 = {int(k): set(v) for k, v in i2.items()}
+            assert i2 in l1
 
     def test_evaluate_multileave(self):
         ranking = TeamRanking([0, 1, 2])
