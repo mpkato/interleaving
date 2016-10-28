@@ -1,4 +1,6 @@
 import interleaving as il
+from interleaving import CreditRanking
+import json
 import numpy as np
 import pytest
 np.random.seed(0)
@@ -13,12 +15,23 @@ class TestOptimized(TestMethods):
 
     def test_init_sampling(self):
         b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
-        b.dump_rankings('./tmp_om.json')
         samples = set([tuple(b.interleave()) for i in range(1000)])
         assert len(samples) == 3
         assert (1, 2) in samples
         assert (2, 1) in samples
         assert (2, 3) in samples
+
+    # def test_dump(self, tmpdir):
+        # tmpfile = str(tmpdir) + '/optimized.json'
+        # b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
+        # b.dump_rankings(tmpfile)
+        # with open(tmpfile, 'r') as f:
+            # obj = json.load(f)
+        # # Test |rankings|
+        # assert len(b._rankings) == len(obj)
+        # # Test keys
+        # l = sorted([str(hash(r)) for r in b._rankings])
+        # assert l == sorted(obj.keys())
 
     def test__unbiasedness_constraints(self):
         lists = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -42,15 +55,18 @@ class TestOptimized(TestMethods):
         lists = [[1, 2], [1, 3], [1, 4]]
         b = il.Optimized(lists, sample_num=100)
         rankings = []
-        r = il.Ranking([1, 2])
+        r = CreditRanking(lists)
+        r += [1, 2]
         r.credits = {
             0: {1: 1.0, 2: 0.5}, 1: {1: 1.0, 2: 1.0/3}, 2: {1: 1.0, 2: 1.0/3}}
         rankings.append(r)
-        r = il.Ranking([1, 3])
+        r = CreditRanking(lists)
+        r += [1, 3]
         r.credits = {
             0: {1: 1.0, 3: 1.0/3}, 1: {1: 1.0, 3: 0.5}, 2: {1: 1.0, 3: 1.0/3}}
         rankings.append(r)
-        r = il.Ranking([1, 4])
+        r = CreditRanking(lists)
+        r += [1, 4]
         r.credits = {
             0: {1: 1.0, 4: 1.0/3}, 1: {1: 1.0, 4: 1.0/3}, 2: {1: 1.0, 4: 0.5}}
         rankings.append(r)
@@ -77,13 +93,16 @@ class TestOptimized(TestMethods):
         lists = [[1, 2], [2, 3]]
         b = il.Optimized(lists, sample_num=100)
         rankings = []
-        r = il.Ranking([1, 2])
+        r = CreditRanking(lists)
+        r += [1, 2]
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = il.Ranking([2, 1])
+        r = CreditRanking(lists)
+        r += [2, 1]
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = il.Ranking([2, 3])
+        r = CreditRanking(lists)
+        r += [2, 3]
         r.credits = {0: {2: 0.5, 3: 1.0/3}, 1: {2: 1.0, 3: 0.5}}
         rankings.append(r)
         res = b._sensitivity(lists, rankings)
@@ -97,13 +116,16 @@ class TestOptimized(TestMethods):
         lists = [[1, 2], [2, 3]]
         b = il.Optimized(lists, sample_num=100)
         rankings = []
-        r = il.Ranking([1, 2])
+        r = CreditRanking(lists)
+        r += [1, 2]
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = il.Ranking([2, 1])
+        r = CreditRanking(lists)
+        r += [2, 1]
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        r = il.Ranking([2, 3])
+        r = CreditRanking(lists)
+        r += [2, 3]
         r.credits = {0: {2: 0.5, 3: 1.0/3}, 1: {2: 1.0, 3: 0.5}}
         rankings.append(r)
         is_success, p, minimum = b._compute_probabilities(lists, rankings)

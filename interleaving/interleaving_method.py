@@ -47,7 +47,7 @@ class InterleavingMethod(object):
         '''
         raise NotImplementedError()
 
-    def dump_rankings(self, path):
+    def dump_rankings(self, file):
         '''
         Dump the sampled rankings into a file
         '''
@@ -57,18 +57,18 @@ class InterleavingMethod(object):
             ranking_dict = {
                 'ranking_list': ranking,
             }
-            if 'teams' in ranking.__dict__:
+            if 'teams' in ranking.__dict__:  # For TeamDraft
                 team_dict = {}
                 for tid, s in ranking.teams.items():
                     team_dict[tid] = list(s)
                 ranking_dict['teams'] = team_dict
-            if 'credits' in ranking.__dict__:
+            if 'credits' in ranking.__dict__:  # For Optimized
                 ranking_dict['credits'] = ranking.credits
             result[key] = {
                 'probability': self._probabilities[rid],
                 'ranking': ranking_dict,
             }
-        with open(path, 'w') as f:
+        with open(file, 'w') as f:
             json.dump(result, f, indent='    ')
 
     def interleave(self):

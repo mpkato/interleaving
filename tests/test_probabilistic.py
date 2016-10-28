@@ -1,18 +1,21 @@
 import interleaving as il
+from interleaving import TeamRanking
 import numpy as np
 from .test_methods import TestMethods
 np.random.seed(0)
 
 class TestProbabilistic(TestMethods):
     def test_evaluate_interleave(self):
-        ranking = il.Ranking([10, 20])
+        ranking = TeamRanking([0, 1])
+        ranking += [10, 20]
         ranking.teams = {0: set([10]), 1: set([20])}
         self.evaluate(il.Probabilistic, ranking, [0, 1], [])
         self.evaluate(il.Probabilistic, ranking, [0],    [(0, 1)])
         self.evaluate(il.Probabilistic, ranking, [1],    [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [],     [])
 
-        ranking = il.Ranking([2, 1, 3])
+        ranking = TeamRanking([0, 1])
+        ranking += [2, 1, 3]
         ranking.teams = {0: set([2]), 1: set([1, 3])}
         self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [0, 2],    [])
@@ -40,7 +43,8 @@ class TestProbabilistic(TestMethods):
         assert tuple(res) in ideal
 
     def test_evaluate_multileave(self):
-        ranking = il.Ranking([0, 1, 2])
+        ranking = TeamRanking([0, 1, 2])
+        ranking += [0, 1, 2]
         ranking.teams = {0: set([1]), 1: set([2]), 2: set([0])}
         self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [])
         self.evaluate(il.Probabilistic, ranking, [0, 2],    [(2, 0), (1, 0)])

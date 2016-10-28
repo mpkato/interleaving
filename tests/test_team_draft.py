@@ -1,4 +1,6 @@
 import interleaving as il
+from interleaving import TeamRanking
+import json
 import numpy as np
 np.random.seed(0)
 from .test_methods import TestMethods
@@ -26,7 +28,6 @@ class TestTeamDraft(TestMethods):
 
     def test_team_draft_ranking(self):
         td = il.TeamDraft([[1, 2, 3], [2, 3, 1]], sample_num=100)
-        td.dump_rankings('./tmp_tdm.json')
         rankings, distributions = zip(*td.ranking_distribution)
         assert len(rankings) == 4
 
@@ -37,7 +38,8 @@ class TestTeamDraft(TestMethods):
             [(1, 3), (1, 5), (3, 1), (3, 5), (5, 1), (5, 3)])
 
     def test_evaluate(self):
-        ranking = il.Ranking([1, 2])
+        ranking = TeamRanking([0, 1])
+        ranking += [1, 2]
         ranking.teams = {}
         ranking.teams[0] = [1]
         ranking.teams[1] = [2]
@@ -46,7 +48,8 @@ class TestTeamDraft(TestMethods):
         self.evaluate(il.TeamDraft, ranking, [1], [(1, 0)])
         self.evaluate(il.TeamDraft, ranking, [], [])
 
-        ranking = il.Ranking([1, 3, 4])
+        ranking = TeamRanking([0, 1])
+        ranking += [1, 3, 4]
         ranking.teams = {}
         ranking.teams[0] = [1]
         ranking.teams[1] = [3, 4]

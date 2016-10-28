@@ -1,4 +1,4 @@
-from .ranking import Ranking
+from .ranking import CreditRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 from scipy.optimize import linprog
@@ -8,7 +8,7 @@ class Optimized(InterleavingMethod):
     '''
     Optimized Interleaving
     '''
-    def __init__(self, lists, max_length=None, sample_num=None, 
+    def __init__(self, lists, max_length=None, sample_num=None,
         credit_func='inverse'):
         '''
         lists: lists of document IDs
@@ -49,7 +49,7 @@ class Optimized(InterleavingMethod):
 
         Return an instance of Ranking
         '''
-        result = Ranking()
+        result = CreditRanking(lists)
         teams = set(range(len(lists)))
 
         while len(result) < max_length:
@@ -64,9 +64,6 @@ class Optimized(InterleavingMethod):
                 teams.remove(selected_team)
 
         # assign credits
-        result.credits = {}
-        for i in range(len(lists)):
-            result.credits[i] = defaultdict(float)
         for docid in result:
             for team in result.credits:
                 if docid in lists[team]:

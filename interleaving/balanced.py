@@ -1,4 +1,4 @@
-from .ranking import Ranking
+from .ranking import BalancedRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 
@@ -34,7 +34,7 @@ class Balanced(InterleavingMethod):
         '''
         a, b = lists[0], lists[1]
         is_a_first = np.random.randint(0, 2) == 0
-        result = Ranking()
+        result = BalancedRanking()
         k_a = 0
         k_b = 0
         while k_a < len(a) and k_b < len(b)\

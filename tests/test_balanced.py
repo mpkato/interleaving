@@ -1,4 +1,5 @@
 import interleaving as il
+from interleaving import BalancedRanking
 import numpy as np
 import pytest
 np.random.seed(0)
@@ -26,7 +27,7 @@ class TestBalanced(TestMethods):
         assert res == [1, 2] or res == [2, 1]
 
     def test_evaluate(self):
-        ranking = il.Ranking([1, 2])
+        ranking = BalancedRanking([1, 2])
         ranking.a = [1, 2]
         ranking.b = [2, 3]
         self.evaluate(il.Balanced, ranking, [0, 1], [])
@@ -34,7 +35,7 @@ class TestBalanced(TestMethods):
         self.evaluate(il.Balanced, ranking, [1], [(1, 0)])
         self.evaluate(il.Balanced, ranking, [], [])
 
-        ranking = il.Ranking([2, 1, 3])
+        ranking = BalancedRanking([2, 1, 3])
         ranking.a = [1, 2]
         ranking.b = [2, 3]
         self.evaluate(il.Balanced, ranking, [0, 1, 2], [])
