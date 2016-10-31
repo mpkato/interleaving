@@ -1,18 +1,20 @@
 import interleaving as il
+from interleaving import TeamRanking
+import json
 import numpy as np
 from .test_methods import TestMethods
 np.random.seed(0)
 
 class TestProbabilistic(TestMethods):
     def test_evaluate_interleave(self):
-        ranking = il.Ranking([10, 20])
+        ranking = TeamRanking(team_indices=[0, 1], contents=[10, 20])
         ranking.teams = {0: set([10]), 1: set([20])}
         self.evaluate(il.Probabilistic, ranking, [0, 1], [])
         self.evaluate(il.Probabilistic, ranking, [0],    [(0, 1)])
         self.evaluate(il.Probabilistic, ranking, [1],    [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [],     [])
 
-        ranking = il.Ranking([2, 1, 3])
+        ranking = TeamRanking(team_indices=[0, 1], contents=[2, 1, 3])
         ranking.teams = {0: set([2]), 1: set([1, 3])}
         self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [(1, 0)])
         self.evaluate(il.Probabilistic, ranking, [0, 2],    [])
@@ -39,8 +41,27 @@ class TestProbabilistic(TestMethods):
         res = p.interleave()
         assert tuple(res) in ideal
 
+    def test_dump(self, tmpdir):
+        tmpfile = str(tmpdir) + '/probabilistic.json'
+        p = il.Probabilistic([[1, 2], [1, 3]], sample_num=10, replace=False)
+        p.dump_rankings(tmpfile)
+        with open(tmpfile, 'r') as f:
+            obj = json.load(f)
+        # Test keys
+        s = {str(hash(r)) for r in p._rankings}
+        assert s == set(obj.keys())
+        # Test rankings
+        l1 = sorted(p._rankings)
+        l2 = sorted([v['ranking']['ranking_list'] for v in obj.values()])
+        assert l1 == l2
+        # Test teams
+        f = lambda d: {str(k): sorted(list(s)) for k, s in d.items()}
+        l1 = [sorted(f(r.teams).items()) for r in p._rankings]
+        l2 = [sorted(v['ranking']['teams'].items()) for v in obj.values()]
+        assert sorted(l1) == sorted(l2)
+
     def test_evaluate_multileave(self):
-        ranking = il.Ranking([0, 1, 2])
+        ranking = TeamRanking(team_indices=[0, 1, 2], contents=[0, 1, 2])
         ranking.teams = {0: set([1]), 1: set([2]), 2: set([0])}
         self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [])
         self.evaluate(il.Probabilistic, ranking, [0, 2],    [(2, 0), (1, 0)])

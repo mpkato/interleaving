@@ -1,4 +1,6 @@
-from .ranking import Ranking
+from .ranking import BalancedRanking
+from .ranking import CreditRanking
+from .ranking import TeamRanking
 
 from .balanced import Balanced
 from .probabilistic import Probabilistic
