@@ -14,7 +14,7 @@ class TestOptimized(TestMethods):
             il.Optimized([[0], [1]])
 
     def test_init_sampling(self):
-        b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
+        b = il.Optimized([[1, 2], [2, 3]], sample_num=3)
         samples = set([tuple(b.interleave()) for i in range(1000)])
         assert len(samples) == 3
         assert (1, 2) in samples
@@ -45,13 +45,13 @@ class TestOptimized(TestMethods):
 
     def test__unbiasedness_constraints(self):
         lists = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=27)
         res = b._unbiasedness_constraints(lists, b._rankings)
         assert res.shape[0] == (3-1)*3
         assert res.shape[1] == len(b._rankings)
 
         lists = [[1, 2], [2, 3]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=3)
         res = b._unbiasedness_constraints(lists, b._rankings)
         ideal = {
             (1, 2): [1-1.0/3, 1.5-1.0-1.0/3],
@@ -63,7 +63,7 @@ class TestOptimized(TestMethods):
                 res[i, j] = ideal[tuple(r)][i]
 
         lists = [[1, 2], [1, 3], [1, 4]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=3)
         rankings = []
         r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {
@@ -98,7 +98,7 @@ class TestOptimized(TestMethods):
 
     def test__sensitivity(self):
         lists = [[1, 2], [2, 3]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=3)
         rankings = []
         r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
@@ -118,7 +118,7 @@ class TestOptimized(TestMethods):
 
     def test__compute_probabilities(self):
         lists = [[1, 2], [2, 3]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=3)
         rankings = []
         r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
@@ -143,7 +143,7 @@ class TestOptimized(TestMethods):
 
     def test_interleave(self):
         lists = [[1, 2], [2, 3]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=3)
         rankings, probabilities = zip(*b.ranking_distribution)
         assert set([(1, 2), (2, 1), (2, 3)]) == set([tuple(r) for r in rankings])
         ideals = {
@@ -167,7 +167,7 @@ class TestOptimized(TestMethods):
 
     def test_evaluate(self):
         lists = [[1, 2], [2, 3]]
-        b = il.Optimized(lists, sample_num=100)
+        b = il.Optimized(lists, sample_num=3)
         samples = [b.interleave() for i in range(1000)]
         rankings = {tuple(r): r for r in samples}
 

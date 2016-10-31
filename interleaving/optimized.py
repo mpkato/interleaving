@@ -38,6 +38,17 @@ class Optimized(InterleavingMethod):
         if not is_success:
             raise ValueError('Optimization failed')
 
+    def _sample_rankings(self):
+        '''
+        Sample `sample_num` rankings
+        '''
+        distribution = defaultdict(int)
+        while len(distribution) < self.sample_num:
+            ranking = self._sample(self.max_length, self.lists)
+            distribution[ranking] = 1.0 / self.sample_num
+        self._rankings, self._probabilities = zip(*distribution.items())
+
+
     def _sample(self, max_length, lists):
         '''
         Prefix constraint sampling
