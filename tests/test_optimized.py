@@ -23,7 +23,7 @@ class TestOptimized(TestMethods):
 
     def test_dump(self, tmpdir):
         tmpfile = str(tmpdir) + '/optimized.json'
-        b = il.Optimized([[1, 2], [2, 3]], sample_num=100)
+        b = il.Optimized([[1, 2], [2, 3]], sample_num=3)
         b.dump_rankings(tmpfile)
         with open(tmpfile, 'r') as f:
             obj = json.load(f)
