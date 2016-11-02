@@ -1,4 +1,4 @@
-from .ranking import TeamRanking
+from .ranking import ProbabilisticRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 
@@ -23,11 +23,19 @@ class Probabilistic(InterleavingMethod):
             self._non_zero_index = set(range(len(self.numerators)))
 
         def delete(self, docid):
+            cum_numerators = 0.0
+            old_denominator = self.denominator
             for idx in self.doc_index[docid]:
+                cum_numerators += self.numerators[idx]
                 self.denominator -= self.numerators[idx]
                 self._non_zero_index.remove(idx)
             if not self.denominator > 0:
                 self.denominator = 0
+            # Returns probability of sampling docid before deletion
+            if old_denominator <= 0:
+                return 0.0
+            else:
+                return cum_numerators / old_denominator
 
         def reset(self):
             self.denominator = self._original_denominator
@@ -80,7 +88,7 @@ class Probabilistic(InterleavingMethod):
         Return an instance of Ranking
         '''
         ranker_indices = list(range(len(lists)))
-        result = TeamRanking(ranker_indices)
+        result = ProbabilisticRanking(lists)
         available_rankers = []
 
         while len(result) < max_length and len(ranker_indices) > 0:
@@ -97,7 +105,6 @@ class Probabilistic(InterleavingMethod):
                 available_rankers = list(ranker_indices)
             else:
                 result.append(docid)
-                result.teams[ranker_idx].add(docid)
                 for ranker_idx in ranker_indices:
                     if docid in self._softmaxs[ranker_idx].doc_index:
                         self._softmaxs[ranker_idx].delete(docid)
@@ -116,6 +123,38 @@ class Probabilistic(InterleavingMethod):
 
         Return a list of scores of each ranker.
         '''
-        return {i: len([c for c in clicks if ranking[c] in ranking.teams[i]])
-            for i in ranking.teams}
+        original_lists = ranking.lists
+        if len(original_lists) == 2:
+            result = {0: 0.0, 1: 0.0}
+            num_assignments = 2 ** len(ranking)
+            ll = []
+            for a in range(num_assignments):
+                c = [0, 0]
+                dists = [
+                    cls.Softmax(3.0, original_lists[0]),
+                    cls.Softmax(3.0, original_lists[1]),
+                ]
+                cum_p = 1.0 / num_assignments
+                l = []
+                for i, document_id in enumerate(ranking):
+                    r = a % 2
+                    l.append(r)
+                    if i in clicks:
+                        c[r] += 1
+                    cum_p *= dists[r].delete(document_id)
+                    dists[(r + 1) % 2].delete(document_id)
+                    a //= 2
+                ll.append([l, c[0], c[1], cum_p])
+                if c[0] < c[1]:
+                    result[1] += cum_p
+                if c[1] < c[0]:
+                    result[0] += cum_p
+            for l in sorted(ll):
+                print(l)
+            print(result)
+            return result
+        # if 2 < len(original_lists):
+            # TODO: Evaluation of multileaved result
+        else:
+            raise ValueError('invalid number of original lists')
 
