@@ -23,6 +23,8 @@ class Probabilistic(InterleavingMethod):
             self._non_zero_index = set(range(len(self.numerators)))
 
         def delete(self, docid):
+            if docid not in self.doc_index:
+                return 0.0
             cum_numerators = 0.0
             old_denominator = self.denominator
             for idx in self.doc_index[docid]:
@@ -51,6 +53,11 @@ class Probabilistic(InterleavingMethod):
                 if cum > p:
                     return self.ranking[i]
             return self.ranking[i]
+
+    class ScoreWithDebugInfo(dict):
+        __slots__ = ['allocations']
+        def __init__(self, *args, **kwargs):
+            self.update(*args, **kwargs)
 
     def __init__(self, lists, max_length=None, sample_num=None,
         tau=3.0, replace=True):
@@ -123,32 +130,36 @@ class Probabilistic(InterleavingMethod):
 
         Return a list of scores of each ranker.
         '''
-        if len(ranking.lists) == 2:
-            result = {0: 0.0, 1: 0.0}
-            num_assignments = 2 ** len(ranking)
-            # ll = []
-            for a in range(num_assignments):
+        L = ranking
+        R = ranking.lists
+        C = clicks
+        if len(R) == 2:
+            # [Hofmann+, CIKM 2011] (Computationally expensive)
+            result = cls.ScoreWithDebugInfo({0: 0.0, 1: 0.0})
+            result.allocations = {}
+            len_A = 2 ** len(ranking)
+            for allocation_index in range(len_A):
+                a = []
                 c = [0, 0]
-                dists = [cls.Softmax(tau, l) for l in ranking.lists]
-                cum_p = 1.0 / num_assignments
-                # l = []
-                for i, document_id in enumerate(ranking):
-                    r = a % 2
-                    # l.append(r)
-                    if i in clicks:
-                        c[r] += 1
-                    cum_p *= dists[r].delete(document_id)
-                    dists[(r + 1) % 2].delete(document_id)
-                    a //= 2
-                # ll.append([l, c[0], c[1], cum_p])
+                dists = [cls.Softmax(tau, r) for r in R]
+                cum_p = 1.0 / len_A
+                for doc_index, docid in enumerate(L):
+                    dist_index = allocation_index % 2
+                    dist_index_alter = (dist_index + 1) % 2
+                    a.append(dist_index)
+                    if doc_index in C:
+                        c[dist_index] += 1
+                    cum_p *= dists[dist_index].delete(docid)
+                    dists[dist_index_alter].delete(docid)
+                    allocation_index //= 2
                 if c[0] < c[1]:
                     result[1] += cum_p
                 elif c[1] < c[0]:
                     result[0] += cum_p
-            # for l in sorted(ll):
-                # print(l)
+                result.allocations[tuple(a)] = (c, cum_p)
             return result
         # if 2 < len(original_lists):
+            # [Schuth+, SIGIR 2015]
             # TODO: Evaluation of multileaved result
         else:
             raise ValueError('invalid number of original lists')

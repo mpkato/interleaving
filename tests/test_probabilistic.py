@@ -7,6 +7,16 @@ from .test_methods import TestMethods
 np.random.seed(0)
 
 class TestProbabilistic(TestMethods):
+    def test_score_interleave(self):
+        ranking = ProbabilisticRanking([[1, 2], [2, 3]], [1, 2])
+        result = il.Probabilistic._compute_scores(ranking, [0, 1], 3.0)
+        assert result.allocations == {
+            (0, 0): ([2, 0], 1 / (1 + 0.125) * (0.125 / (0.125)) / 4.0),
+            (0, 1): ([1, 1], 1 / (1 + 0.125) * (1 / (1 + 0.125)) / 4.0),
+            (1, 0): ([1, 1], 0.0),
+            (1, 1): ([0, 2], 0.0),
+        }
+
     def test_evaluate_interleave(self):
         ranking = ProbabilisticRanking(
             [[1, 2, 3, 4], [2, 3, 4, 1]],
