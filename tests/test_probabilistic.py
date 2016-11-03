@@ -9,10 +9,10 @@ np.random.seed(0)
 class TestProbabilistic(TestMethods):
     def test_score_interleave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 3]], [1, 2])
-        result = il.Probabilistic._compute_scores(ranking, [0, 1], 3.0)
+        result = il.Probabilistic._compute_scores(ranking, [0, 1])
         assert result.allocations == {
-            (0, 0): ([2, 0], 1 / (1 + 0.125) * (0.125 / (0.125)) / 4.0),
-            (0, 1): ([1, 1], 1 / (1 + 0.125) * (1 / (1 + 0.125)) / 4.0),
+            (0, 0): ([2, 0], 1 / (1 + 0.125) * (0.125 / (0.125))),
+            (0, 1): ([1, 1], 1 / (1 + 0.125) * (1 / (1 + 0.125))),
             (1, 0): ([1, 1], 0.0),
             (1, 1): ([0, 2], 0.0),
         }
@@ -22,6 +22,54 @@ class TestProbabilistic(TestMethods):
             [[1, 2, 3, 4], [2, 3, 4, 1]],
             [1, 2, 3, 4])
         self.evaluate(il.Probabilistic, ranking, [1, 2], [(1, 0)])
+
+    def test_score_multileave(self):
+        ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
+        result = il.Probabilistic._compute_scores(ranking, [0, 1])
+        assert result.allocations == {
+            (0, 0): (
+                [2, 0, 0],
+                np.exp(
+                    np.log(1.0 / (2 * (1.0 + 0.125))) +
+                    np.log(0.125 / (2 * (0.125)))
+                )
+            ),
+            (0, 1): ([1, 1, 0],
+                np.exp(
+                    np.log(1.0 / (2 * (1.0 + 0.125))) +
+                    np.log(1.0 / (2 * (1.0)))
+                )
+            ),
+            (0, 2): ([1, 0, 1],
+                np.exp(
+                    np.log(1.0 / (2 * (1.0 + 0.125))) +
+                    np.log(1.0 / (2 * (1.0 + 0.125)))
+                )
+            ),
+            (1, 0): ([1, 1, 0],
+                np.exp(
+                    np.log(0.125 / (2 * (1.0 + 0.125))) +
+                    np.log(0.125 / (2 * (0.125)))
+                )
+            ),
+            (1, 1): ([0, 2, 0],
+                np.exp(
+                    np.log(0.125 / (2 * (1.0 + 0.125))) +
+                    np.log(1.0 / (2 * (1.0)))
+                )
+            ),
+            (1, 2): ([0, 1, 1],
+                np.exp(
+                    np.log(0.125 / (2 * (1.0 + 0.125))) +
+                    np.log(1.0 / (2 * (1.0 + 0.125)))
+                )
+            ),
+        }
+
+    def test_evaluate_multileave(self):
+        ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
+        self.evaluate(il.Probabilistic, ranking, [0, 1],
+            [(0, 1), (0, 2), (1, 2)])
 
     def test_init_sampling(self):
         p = il.Probabilistic([[1, 2], [1, 3]], sample_num=200000, replace=False)
@@ -56,16 +104,3 @@ class TestProbabilistic(TestMethods):
         j1 = [r.lists for r in p._rankings]
         j2 = [r['ranking']['lists'] for r in obj.values()]
         assert j1 == j2
-
-    # TODO: Test evaluation of multileaved result
-    # def test_evaluate_multileave(self):
-        # ranking = TeamRanking(team_indices=[0, 1], contents=[1, 2, 3, 4])
-        # ranking.teams = {0: set([1]), 1: set([2]), 2: set([0])}
-        # self.evaluate(il.Probabilistic, ranking, [0, 1, 2], [])
-        # self.evaluate(il.Probabilistic, ranking, [0, 2],    [(2, 0), (1, 0)])
-        # self.evaluate(il.Probabilistic, ranking, [1, 2],    [(0, 2), (1, 2)])
-        # self.evaluate(il.Probabilistic, ranking, [0, 1],    [(0, 1), (2, 1)])
-        # self.evaluate(il.Probabilistic, ranking, [0],       [(2, 0), (2, 1)])
-        # self.evaluate(il.Probabilistic, ranking, [1],       [(0, 1), (0, 2)])
-        # self.evaluate(il.Probabilistic, ranking, [2],       [(1, 0), (1, 2)])
-        # self.evaluate(il.Probabilistic, ranking, [],        [])

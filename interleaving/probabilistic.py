@@ -54,7 +54,7 @@ class Probabilistic(InterleavingMethod):
                     return self.ranking[i]
             return self.ranking[i]
 
-    class ScoreWithDebugInfo(dict):
+    class ProbablisticScore(dict):
         __slots__ = ['allocations']
         def __init__(self, *args, **kwargs):
             self.update(*args, **kwargs)
@@ -123,7 +123,7 @@ class Probabilistic(InterleavingMethod):
         return result
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks, tau=3.0):
+    def _compute_scores(cls, ranking, clicks, tau=3.0, n=10**4):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user
@@ -131,36 +131,59 @@ class Probabilistic(InterleavingMethod):
         Return a list of scores of each ranker.
         '''
         L = ranking
-        R = ranking.lists
-        C = clicks
-        if len(R) == 2:
+        C = {ranking[index] for index in clicks}
+        if len(ranking.lists) == 2:
             # [Hofmann+, CIKM 2011] (Computationally expensive)
-            result = cls.ScoreWithDebugInfo({0: 0.0, 1: 0.0})
-            result.allocations = {}
-            len_A = 2 ** len(ranking)
-            for allocation_index in range(len_A):
+            o = cls.ProbablisticScore({0: 0.0, 1: 0.0})
+            o.allocations = {}
+            for i in range(2 ** len(ranking)):
                 a = []
+                for d in L:
+                    a.append(i % 2)
+                    i //= 2
                 c = [0, 0]
-                dists = [cls.Softmax(tau, r) for r in R]
-                cum_p = 1.0 / len_A
-                for doc_index, docid in enumerate(L):
-                    dist_index = allocation_index % 2
-                    dist_index_alter = (dist_index + 1) % 2
-                    a.append(dist_index)
-                    if doc_index in C:
-                        c[dist_index] += 1
-                    cum_p *= dists[dist_index].delete(docid)
-                    dists[dist_index_alter].delete(docid)
-                    allocation_index //= 2
+                R = [cls.Softmax(tau, R_j) for R_j in ranking.lists]
+                cum_p = 1.0
+                for j, d in zip(a, L):
+                    j_alter = (j + 1) % 2
+                    if d in C:
+                        c[j] += 1
+                    cum_p *= R[j].delete(d)
+                    R[j_alter].delete(d)
                 if c[0] < c[1]:
-                    result[1] += cum_p
+                    o[1] += cum_p
                 elif c[1] < c[0]:
-                    result[0] += cum_p
-                result.allocations[tuple(a)] = (c, cum_p)
-            return result
-        # if 2 < len(original_lists):
+                    o[0] += cum_p
+                o.allocations[tuple(a)] = (c, cum_p)
+            return o
+        if 2 < len(ranking.lists):
             # [Schuth+, SIGIR 2015]
-            # TODO: Evaluation of multileaved result
+            R = [cls.Softmax(tau, R_j) for R_j in ranking.lists]
+            A_prime = [([0] * len(R), 0.0, [])]
+            threshold = 1 / len(R) * n ** (1 / len(L))
+            for d in L:
+                A, A_prime = A_prime, []
+                P = [None] * len(R)
+                for j, R_j in enumerate(R):
+                    P[j] = R_j.delete(d)
+                for (o, p, a) in A:
+                    for j, R_j in enumerate(R):
+                        if threshold < np.random.rand():
+                            continue
+                        if P[j] <= 0.0:
+                            continue
+                        p_prime = p + np.log(P[j] / 2)
+                        o_prime = o[:]
+                        if d in C:
+                            o_prime[j] += 1
+                        A_prime.append((o_prime, p_prime, a + [j]))
+            o = cls.ProbablisticScore({i: 0.0 for i in range(len(R))})
+            o.allocations = {}
+            for (o_prime, p_prime, a) in A_prime:
+                p_prime = np.exp(p_prime)
+                for i in range(len(R)):
+                    o[i] += o_prime[i] * p_prime
+                o.allocations[tuple(a)] = (o_prime, p_prime)
+            return o
         else:
-            raise ValueError('invalid number of original lists')
-
+            raise ValueError('Invalid number of original lists')
