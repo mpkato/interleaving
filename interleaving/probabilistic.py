@@ -116,42 +116,37 @@ class Probabilistic(InterleavingMethod):
         return result
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks):
+    def _compute_scores(cls, ranking, clicks, tau=3.0):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user
 
         Return a list of scores of each ranker.
         '''
-        original_lists = ranking.lists
-        if len(original_lists) == 2:
+        if len(ranking.lists) == 2:
             result = {0: 0.0, 1: 0.0}
             num_assignments = 2 ** len(ranking)
-            ll = []
+            # ll = []
             for a in range(num_assignments):
                 c = [0, 0]
-                dists = [
-                    cls.Softmax(3.0, original_lists[0]),
-                    cls.Softmax(3.0, original_lists[1]),
-                ]
+                dists = [cls.Softmax(tau, l) for l in ranking.lists]
                 cum_p = 1.0 / num_assignments
-                l = []
+                # l = []
                 for i, document_id in enumerate(ranking):
                     r = a % 2
-                    l.append(r)
+                    # l.append(r)
                     if i in clicks:
                         c[r] += 1
                     cum_p *= dists[r].delete(document_id)
                     dists[(r + 1) % 2].delete(document_id)
                     a //= 2
-                ll.append([l, c[0], c[1], cum_p])
+                # ll.append([l, c[0], c[1], cum_p])
                 if c[0] < c[1]:
                     result[1] += cum_p
-                if c[1] < c[0]:
+                elif c[1] < c[0]:
                     result[0] += cum_p
-            for l in sorted(ll):
-                print(l)
-            print(result)
+            # for l in sorted(ll):
+                # print(l)
             return result
         # if 2 < len(original_lists):
             # TODO: Evaluation of multileaved result

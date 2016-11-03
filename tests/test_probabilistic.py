@@ -11,7 +11,7 @@ class TestProbabilistic(TestMethods):
         ranking = ProbabilisticRanking(
             [[1, 2, 3, 4], [2, 3, 4, 1]],
             [1, 2, 3, 4])
-        self.evaluate(il.Probabilistic, ranking, [1, 2], [(0, 1)])
+        self.evaluate(il.Probabilistic, ranking, [1, 2], [(1, 0)])
 
     def test_init_sampling(self):
         p = il.Probabilistic([[1, 2], [1, 3]], sample_num=200000, replace=False)
