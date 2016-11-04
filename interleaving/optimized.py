@@ -42,7 +42,7 @@ class Optimized(InterleavingMethod):
         '''
         Sample `sample_num` rankings
         '''
-        distribution = defaultdict(int)
+        distribution = {}
         while len(distribution) < self.sample_num:
             ranking = self._sample(self.max_length, self.lists)
             distribution[ranking] = 1.0 / self.sample_num

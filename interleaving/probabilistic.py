@@ -1,4 +1,4 @@
-from .ranking import TeamRanking
+from .ranking import ProbabilisticRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 
@@ -23,11 +23,21 @@ class Probabilistic(InterleavingMethod):
             self._non_zero_index = set(range(len(self.numerators)))
 
         def delete(self, docid):
+            if docid not in self.doc_index:
+                return 0.0
+            cum_numerators = 0.0
+            old_denominator = self.denominator
             for idx in self.doc_index[docid]:
+                cum_numerators += self.numerators[idx]
                 self.denominator -= self.numerators[idx]
                 self._non_zero_index.remove(idx)
             if not self.denominator > 0:
                 self.denominator = 0
+            # Returns probability of sampling docid before deletion
+            if old_denominator <= 0:
+                return 0.0
+            else:
+                return cum_numerators / old_denominator
 
         def reset(self):
             self.denominator = self._original_denominator
@@ -43,6 +53,11 @@ class Probabilistic(InterleavingMethod):
                 if cum > p:
                     return self.ranking[i]
             return self.ranking[i]
+
+    class ProbablisticScore(dict):
+        __slots__ = ['allocations']
+        def __init__(self, *args, **kwargs):
+            self.update(*args, **kwargs)
 
     def __init__(self, lists, max_length=None, sample_num=None,
         tau=3.0, replace=True):
@@ -80,7 +95,7 @@ class Probabilistic(InterleavingMethod):
         Return an instance of Ranking
         '''
         ranker_indices = list(range(len(lists)))
-        result = TeamRanking(ranker_indices)
+        result = ProbabilisticRanking(lists)
         available_rankers = []
 
         while len(result) < max_length and len(ranker_indices) > 0:
@@ -97,7 +112,6 @@ class Probabilistic(InterleavingMethod):
                 available_rankers = list(ranker_indices)
             else:
                 result.append(docid)
-                result.teams[ranker_idx].add(docid)
                 for ranker_idx in ranker_indices:
                     if docid in self._softmaxs[ranker_idx].doc_index:
                         self._softmaxs[ranker_idx].delete(docid)
@@ -109,13 +123,67 @@ class Probabilistic(InterleavingMethod):
         return result
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks):
+    def _compute_scores(cls, ranking, clicks, tau=3.0, n=10**4):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user
 
         Return a list of scores of each ranker.
         '''
-        return {i: len([c for c in clicks if ranking[c] in ranking.teams[i]])
-            for i in ranking.teams}
-
+        L = ranking
+        C = {ranking[index] for index in clicks}
+        if len(ranking.lists) == 2:
+            # [Hofmann+, CIKM 2011] (Computationally expensive)
+            o = cls.ProbablisticScore({0: 0.0, 1: 0.0})
+            o.allocations = {}
+            for i in range(2 ** len(ranking)):
+                a = []
+                for d in L:
+                    a.append(i % 2)
+                    i //= 2
+                c = [0, 0]
+                R = [cls.Softmax(tau, R_j) for R_j in ranking.lists]
+                cum_p = 1.0
+                for j, d in zip(a, L):
+                    j_alter = (j + 1) % 2
+                    if d in C:
+                        c[j] += 1
+                    cum_p *= R[j].delete(d)
+                    R[j_alter].delete(d)
+                if c[0] < c[1]:
+                    o[1] += cum_p
+                elif c[1] < c[0]:
+                    o[0] += cum_p
+                o.allocations[tuple(a)] = (c, cum_p)
+            return o
+        if 2 < len(ranking.lists):
+            # [Schuth+, SIGIR 2015]
+            R = [cls.Softmax(tau, R_j) for R_j in ranking.lists]
+            A_prime = [([0] * len(R), 0.0, [])]
+            threshold = 1 / len(R) * n ** (1 / len(L))
+            for d in L:
+                A, A_prime = A_prime, []
+                P = [None] * len(R)
+                for j, R_j in enumerate(R):
+                    P[j] = R_j.delete(d)
+                for (o, p, a) in A:
+                    for j, R_j in enumerate(R):
+                        if threshold < np.random.rand():
+                            continue
+                        if P[j] <= 0.0:
+                            continue
+                        p_prime = p + np.log(P[j] / 2)
+                        o_prime = o[:]
+                        if d in C:
+                            o_prime[j] += 1
+                        A_prime.append((o_prime, p_prime, a + [j]))
+            o = cls.ProbablisticScore({i: 0.0 for i in range(len(R))})
+            o.allocations = {}
+            for (o_prime, p_prime, a) in A_prime:
+                p_prime = np.exp(p_prime)
+                for i in range(len(R)):
+                    o[i] += o_prime[i] * p_prime
+                o.allocations[tuple(a)] = (o_prime, p_prime)
+            return o
+        else:
+            raise ValueError('Invalid number of original lists')
