@@ -105,13 +105,24 @@ class Optimized(InterleavingMethod):
         # constraints
         A_eq = np.vstack((A_p_sum, ub_cons))
         b_eq = np.array([1.0] + [0.0]*ub_cons.shape[0])
-
         # solving the optimization problem
         res = linprog(sensitivity, # objective function
             A_eq=A_eq, b_eq=b_eq, # constraints
             bounds=[(0, 1)]*len(rankings) # 0 <= p <= 1
             )
+        if res.success:
+            return res.success, res.x, res.fun
+
+        # loose constraints
+        A_eq = np.array([A_p_sum])
+        b_eq = np.array([1.0])
+        # solving the loose optimization problem
+        res = linprog(sensitivity, # objective function
+            A_eq=A_eq, b_eq=b_eq, # loose constraints
+            bounds=[(0, 1)]*len(rankings) # 0 <= p <= 1
+            )
         return res.success, res.x, res.fun
+
 
     def _unbiasedness_constraints(self, lists, rankings):
         '''
