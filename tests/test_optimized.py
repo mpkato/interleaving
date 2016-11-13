@@ -143,7 +143,7 @@ class TestOptimized(TestMethods):
 
     def test__compute_probabilities_loose(self):
         lists = [[1, 2], [2, 3]]
-        b = il.Optimized(lists, sample_num=3)
+        b = il.Optimized(lists, sample_num=2)
         rankings = []
         r = CreditRanking(num_rankers=len(lists), contents=[1, 2])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
@@ -151,14 +151,15 @@ class TestOptimized(TestMethods):
         r = CreditRanking(num_rankers=len(lists), contents=[2, 1])
         r.credits = {0: {1: 1.0, 2: 0.5}, 1: {1: 1.0/3, 2: 1.0}}
         rankings.append(r)
-        is_success, p, minimum = b._compute_probabilities(lists, rankings)
+        is_success, p, _ = b._compute_probabilities(lists, rankings)
         assert is_success
-        assert (p >= 0).all()
-        assert (p <= 1).all()
-        assert minimum >= 0
-        self.assert_almost_equal(np.sum(p), 1)
         self.assert_almost_equal(p[0], 0)
         self.assert_almost_equal(p[1], 1)
+
+    def test__compute_probabilities_retry(self):
+        lists = [[1, 2], [2, 3]]
+        b = il.Optimized(lists, sample_num=1, retry=100)
+        self.assert_almost_equal(b._probabilities[0], 1)
 
     def test_interleave(self):
         lists = [[1, 2], [2, 3]]
