@@ -10,14 +10,15 @@ class Simulator(object):
 
     def __init__(self, dataset_filepath, num_per_query, topk=10):
         '''
-        dataset_filepath: path to the file including relevance grade and
-                          features in the format shown below:
-            <line> .=. <target> qid:<qid> <feature>:<value> <feature>:<value> ... <feature>:<value> # <info>
-            <target> .=. <positive integer>
-            <qid> .=. <positive integer>
+        dataset_filepath:
+            path to the file including relevance grade and
+            features in the format shown below:
+            <line>    .=. <target> qid:<qid> <feature>:<value> <feature>:<value> ... <feature>:<value> # <info>
+            <target>  .=. <positive integer>
+            <qid>     .=. <positive integer>
             <feature> .=. <positive integer>
-            <value> .=. <float>
-            <info> .=. <string>
+            <value>   .=. <float>
+            <info>    .=. <string>
         num_per_query:    number of iteration of each query
         topk:             the number of documents shown to users in interleaving
         '''
@@ -47,7 +48,7 @@ class Simulator(object):
             result[idx] = np.average(result[idx])
         return result
 
-    def evaluate(self, rankers, user, method):
+    def evaluate(self, rankers, user, method, sample_num=None):
         '''
         rankers: instances of Ranker to be compared
         user: an instance of User that is assumed in the simulation
@@ -56,16 +57,23 @@ class Simulator(object):
         Return a dict indicating the number of pairs (i, j) 
         where i won j.
         '''
-        result = defaultdict(int)
-        for q in self.queries:
+        methods = {}
+        for q in self.docs:
             documents = self.docs[q]
-            rels = {id(d): d.rel for d in documents}
+            topk = self.topk if self.topk <= len(documents) else len(documents)
             ranked_lists = []
             for ranker in rankers:
                 res = ranker.rank(documents)
                 res = [id(d) for d in res]
                 ranked_lists.append(res)
-            ranking = method(ranked_lists, max_length=self.topk).interleave()
+            methods[q] = method(ranked_lists,
+                max_length=topk, sample_num=sample_num)
+
+        result = defaultdict(int)
+        for q in self.queries:
+            documents = self.docs[q]
+            rels = {id(d): d.rel for d in documents}
+            ranking = methods[q].interleave()
             clicks = user.examine(ranking, rels)
             res = method.evaluate(ranking, clicks)
             for r in res:
