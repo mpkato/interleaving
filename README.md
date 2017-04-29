@@ -24,6 +24,7 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Team draft multileaving<sup>7</sup>
 - Probabilistic multileaving<sup>8</sup>
 - Optimized multileaving<sup>7</sup>
+- Roughly optimized multileaving<sup>9</sup>
 
 Note that probabilistic interleaving and probabilistic multileaving use
 different strategies to select a ranker from which a document is selected.
@@ -34,12 +35,13 @@ Probabilistic multileaving samples a ranker without replacement.
 Let D be a set of all the rankers.
 A ranker is sampled from D without replacement.
 When D is empty, all the rankers are put into D again.
-`Probabilistic` has an keyword argument `replace` by which either of these 
+`Probabilistic` has an keyword argument `replace` by which either of these
 strategies can be used.
 
 ## Prerequisites
 - Numpy
 - Scipy
+- Pulp
 
 ## Installation
 `interleaving` and its prerequisites can be installed by
@@ -79,7 +81,7 @@ $ python setup.py install
 >>>
 >>> clicks = [0, 1] # observed clicks, i.e. documents 1 and 4 are clicked
 >>> result = interleaving.TeamDraft.evaluate(ranking, clicks)
->>> result # if (0, 1) or (1, 0) does not appear in the result, 
+>>> result # if (0, 1) or (1, 0) does not appear in the result,
 >>>        # it indicates a tie between Rankings 1 and 2.
 []
 ```
@@ -93,6 +95,7 @@ $ python setup.py install
 6. Radlinski and Craswell. "Optimized Interleaving for Online Retrieval Evaluation." WSDM 2013.
 7. Schuth et al. "Multileaved Comparisons for Fast Online Evaluation." CIKM 2014.
 8. Schuth et al. "Probabilistic Multileave for Online Retrieval Evaluation." SIGIR 2015.
+9. Manabe et al. "A Comparative Live Evaluation of Multileaving Methods on a Commercial cQA Search", SIGIR 2017.
 
 ## License
 MIT License (see LICENSE file).
