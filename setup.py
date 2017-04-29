@@ -26,7 +26,8 @@ setup(
     ],
     install_requires = [
         'numpy',
-        'scipy'
+        'scipy',
+        'pulp'
     ],
     tests_require=['pytest'],
     cmdclass = {'test': PyTest}

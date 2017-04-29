@@ -7,5 +7,6 @@ from .balanced import Balanced
 from .probabilistic import Probabilistic
 from .team_draft import TeamDraft
 from .optimized import Optimized
+from .roughly_optimized import RoughlyOptimized
 
 from . import simulation
