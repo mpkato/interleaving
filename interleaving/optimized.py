@@ -8,7 +8,7 @@ class Optimized(InterleavingMethod):
     Optimized Interleaving
     '''
     def __init__(self, lists, max_length=None, sample_num=None,
-        credit_func='inverse'):
+        credit_func='inverse', retry=0):
         '''
         lists: lists of document IDs
         max_length: the maximum length of resultant interleaving.
@@ -30,11 +30,16 @@ class Optimized(InterleavingMethod):
             self._credit_func = lambda x: -x
         else:
             raise ValueError('credit_func should be either inverse or negative')
-        super(Optimized, self).__init__(lists,
-            max_length=max_length, sample_num=sample_num)
-        # self._rankings (sampled rankings) is obtained here
-        res = self._compute_probabilities(lists, self._rankings)
-        is_success, self._probabilities, _ = res
+        while(True):
+            super(Optimized, self).__init__(lists,
+                max_length=max_length, sample_num=sample_num)
+            # self._rankings (sampled rankings) is obtained here
+            res = self._compute_probabilities(lists, self._rankings,
+                allow_loosening=(retry <= 0))
+            is_success, self._probabilities, _ = res
+            if is_success or retry <= 0:
+                break
+            retry -= 1
         if not is_success:
             raise ValueError('Optimization failed')
 
@@ -85,7 +90,8 @@ class Optimized(InterleavingMethod):
 
         return result
 
-    def _compute_probabilities(self, lists, rankings):
+    def _compute_probabilities(self, lists, rankings,
+            allow_loosening=True):
         '''
         Solve the optimization problem in
         (Multileaved Comparisons for Fast Online Evaluation, CIKM'14)
@@ -105,13 +111,24 @@ class Optimized(InterleavingMethod):
         # constraints
         A_eq = np.vstack((A_p_sum, ub_cons))
         b_eq = np.array([1.0] + [0.0]*ub_cons.shape[0])
-
         # solving the optimization problem
         res = linprog(sensitivity, # objective function
             A_eq=A_eq, b_eq=b_eq, # constraints
             bounds=[(0, 1)]*len(rankings) # 0 <= p <= 1
             )
+        if res.success or not allow_loosening:
+            return res.success, res.x, res.fun
+
+        # loose constraints
+        A_eq = np.array([A_p_sum])
+        b_eq = np.array([1.0])
+        # solving the loose optimization problem
+        res = linprog(sensitivity, # objective function
+            A_eq=A_eq, b_eq=b_eq, # loose constraints
+            bounds=[(0, 1)]*len(rankings) # 0 <= p <= 1
+            )
         return res.success, res.x, res.fun
+
 
     def _unbiasedness_constraints(self, lists, rankings):
         '''
