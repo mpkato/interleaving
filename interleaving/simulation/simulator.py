@@ -5,6 +5,16 @@ class Simulator(object):
     '''
     A simulator that generates psuedo queries, documents, and qrels,
     conducts interleaving, simulates user clicks, and evaluates rankers.
+
+    Args:
+        query_num: the number of queries used in the simulation
+                   (queries are used only once in a simulation)
+        doc_num: the number of documents used in the simulation
+        rel_doc_dist: a list of probability values for grades.
+                      [p1, p2, ..., pn] indicates that the maximum grade is n,
+                      and the probability of grade i is pi (that of grade
+                      0 is 1 - sum(p1, p2, ..., pn)).
+        topk: the number of documents shown to users in interleaving
     '''
 
     def __init__(self, query_num=100, doc_num=1000,
@@ -44,13 +54,15 @@ class Simulator(object):
 
     def evaluate(self, ranker_a, ranker_b, user, method):
         '''
-        ranker_a: an instance of Ranker to be compared
-        ranker_b: an instance of Ranker to be compared
-        user: an instance of User that is assumed in the simulation
-        method: a class of intereaving method used in the simulation
+        Args:
+            ranker_a: an instance of Ranker to be compared
+            ranker_b: an instance of Ranker to be compared
+            user: an instance of User that is assumed in the simulation
+            method: a class of intereaving method used in the simulation
 
-        Return a_win (how many times a won), b_win (how_many_times b won), 
-        and tie (the number of ties in the interleaving).
+        Returns:
+            a_win (how many times a won), b_win (how_many_times b won),
+            and tie (the number of ties in the interleaving).
         '''
         a_win, b_win, tie = 0, 0, 0
         for q in range(self.query_num):

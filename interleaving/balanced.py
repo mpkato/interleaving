@@ -2,10 +2,23 @@ from .ranking import BalancedRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 
+
 class Balanced(InterleavingMethod):
     '''
     Balanced Interleaving
+
+    Args:
+        lists: two lists of document IDs
+        max_length: the maximum length of resultant interleaving.
+                    If this is None (default), it is set to the minimum length
+                    of the given lists.
+        sample_num: If this is None (default), an interleaved ranking is
+                    generated every time when `interleave` is called.
+                    Otherwise, `sample_num` rankings are sampled in the
+                    initialization, one of which is returned when `interleave`
+                    is called.
     '''
+
     def __init__(self, lists, max_length=None, sample_num=None):
         '''
         lists: two lists of document IDs
