@@ -2,11 +2,30 @@ from .ranking import ProbabilisticRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
 
+
 class Probabilistic(InterleavingMethod):
     '''
     Probabilistic Interleaving
+
+    Args:
+        lists: two lists of document IDs
+        max_length: the maximum length of resultant interleaving.
+                    If this is None (default), it is set to the minimum length
+                    of the given lists.
+        sample_num: If this is None (default), an interleaved ranking is
+                    generated every time when `interleave` is called.
+                    Otherwise, `sample_num` rankings are sampled in the
+                    initialization, one of which is returned when `interleave`
+                    is called.
+        tau: a parameter that determines the probability of documents
+             (default: 3.0)
+        replace: rankings are sampled with replacement if it is True.
+                          Otherwise, they are sampled without replacement,
+                          e.g. given two rankings A and B, one of them is
+                          sampled first and then another is used.
     '''
     class Softmax(object):
+
         def __init__(self, tau, ranking):
             self.tau = tau
             self.ranking = ranking
