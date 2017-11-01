@@ -1,5 +1,6 @@
 import interleaving as il
 import numpy as np
+from collections import defaultdict
 np.random.seed(0)
 
 class TestSimulation(object):
@@ -15,7 +16,11 @@ class TestSimulation(object):
         user = il.simulation.User(click_probs=[0.0, 0.5, 1.0],
             stop_probs=[0.0, 0.0, 0.0])
 
-        result = sim.evaluate(rankers, user, il.TeamDraft)
+        res = sim.evaluate(rankers, user, il.TeamDraft)
+        result = defaultdict(int)
+        for rs in res:
+            for r in rs:
+                result[r] += 1
         assert result[(1, 0)] > result[(0, 1)]
         assert result[(1, 2)] > result[(2, 1)]
         assert result[(0, 2)] > result[(2, 0)]

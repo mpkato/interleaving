@@ -69,23 +69,27 @@ class Simulator(object):
             methods[q] = method(ranked_lists,
                 max_length=topk, sample_num=sample_num)
 
-        result = defaultdict(int)
+        result = []
         for q in self.queries:
             documents = self.docs[q]
             rels = {id(d): d.rel for d in documents}
             ranking = methods[q].interleave()
             clicks = user.examine(ranking, rels)
             res = method.evaluate(ranking, clicks)
-            for r in res:
-                result[r] += 1
+            result.append(res)
         return result
 
     def measure_error(self, il_result, ndcg_result):
+        prefs = defaultdict(int)
+        for res in il_result:
+            for r in res:
+                prefs[r] += 1
+
         result = 0.0
         for i in ndcg_result:
             for j in ndcg_result:
                 paired_ndcg = ndcg_result[i] > ndcg_result[j]
-                paired_pref = il_result[(i, j)] > il_result[(j, i)]
+                paired_pref = prefs[(i, j)] > prefs[(j, i)]
                 if (paired_ndcg and not paired_pref)\
                     or (not paired_ndcg and paired_pref):
                     result += 1
