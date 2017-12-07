@@ -54,7 +54,7 @@ class Simulator(object):
         user: an instance of User that is assumed in the simulation
         method: a class of intereaving method used in the simulation
 
-        Return a dict indicating the number of pairs (i, j) 
+        Return a dict indicating the number of pairs (i, j)
         where i won j.
         '''
         methods = {}
@@ -70,8 +70,8 @@ class Simulator(object):
                 max_length=topk, sample_num=sample_num)
 
         result = []
-        queries = np.random.choice(
-            self.docs.keys(), self.query_sample_num, replace=True)
+        queries = np.random.choice(list(self.docs.keys()),
+            self.query_sample_num, replace=True)
         for q in queries:
             documents = self.docs[q]
             rels = {id(d): d.rel for d in documents}
@@ -81,7 +81,8 @@ class Simulator(object):
             result.append(res)
         return result
 
-    def measure_error(self, il_result, ndcg_result):
+    @classmethod
+    def measure_error(cls, il_result, ndcg_result):
         '''
         Return E_bin score in Schuth's CIKM 2014 paper.
         E_bin = sum_{i != j} sign(P^_{i, j} - 0.5) != sign(P_{i, j} - 0.5)
@@ -97,6 +98,8 @@ class Simulator(object):
         result = 0.0
         for i in ndcg_result:
             for j in ndcg_result:
+                if i == j:
+                    continue
                 paired_ndcg = ndcg_result[i] > ndcg_result[j]
                 paired_pref = prefs[(i, j)] > prefs[(j, i)]
                 if (paired_ndcg and not paired_pref)\

@@ -1,4 +1,4 @@
-import math
+import numpy as np
 
 def ndcg(documents, rels, cutoff):
     '''
@@ -20,6 +20,6 @@ def dcg(documents, rels, cutoff):
     for idx, d in enumerate(documents[:cutoff]):
         rank = idx + 1
         gain = rels[d]
-        decay = 1.0 / math.log(rank + 1)
+        decay = 1.0 / np.log2(rank + 1)
         result += gain * decay
     return result
