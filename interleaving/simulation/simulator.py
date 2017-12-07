@@ -8,7 +8,7 @@ class Simulator(object):
     A simulator based on a dataset
     '''
 
-    def __init__(self, dataset_filepath, num_per_query, topk=10):
+    def __init__(self, dataset_filepath, query_sample_num, topk=10):
         '''
         dataset_filepath:
             path to the file including relevance grade and
@@ -19,7 +19,7 @@ class Simulator(object):
             <feature> .=. <positive integer>
             <value>   .=. <float>
             <info>    .=. <string>
-        num_per_query:    number of iteration of each query
+        query_sample_num: the number of query samplings
         topk:             the number of documents shown to users in interleaving
         '''
         self.docs = defaultdict(list)
@@ -27,7 +27,7 @@ class Simulator(object):
             for line in f:
                 d = Document.readline(line)
                 self.docs[d.qid].append(d)
-        self.queries = list(self.docs.keys()) * num_per_query
+        self.query_sample_num = query_sample_num
         self.topk = topk
 
     def ndcg(self, rankers, cutoff):
@@ -70,7 +70,9 @@ class Simulator(object):
                 max_length=topk, sample_num=sample_num)
 
         result = []
-        for q in self.queries:
+        queries = np.random.choice(
+            self.docs.keys(), self.query_sample_num, replace=True)
+        for q in queries:
             documents = self.docs[q]
             rels = {id(d): d.rel for d in documents}
             ranking = methods[q].interleave()
@@ -80,6 +82,13 @@ class Simulator(object):
         return result
 
     def measure_error(self, il_result, ndcg_result):
+        '''
+        Return E_bin score in Schuth's CIKM 2014 paper.
+        E_bin = sum_{i != j} sign(P^_{i, j} - 0.5) != sign(P_{i, j} - 0.5)
+              / (# of rankers) * ((# of rankers) - 1),
+              where P^_{i, j} = 1 (i won j) or 0 (j won i) in the interleaving,
+              and P_{i, j} = 1 (i won j) or 0 (j won i) in terms fo nDCG.
+        '''
         prefs = defaultdict(int)
         for res in il_result:
             for r in res:
