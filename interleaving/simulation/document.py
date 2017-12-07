@@ -1,12 +1,30 @@
 class Document(object):
-
+    '''
+    Documents characterized by features used for learing to rank.
+    A relevance grade is assigned for each document.
+    '''
     def __init__(self, rel, qid, features):
+        '''
+        rel: a relevance grade (positive integer)
+        qid: a query ID (positive integer)
+        features: a dict of { feature: value },
+            where `feature` is a positive integer.
+        '''
         self.rel = rel
         self.qid = qid
         self.features = features
 
     @classmethod
     def readline(cls, line):
+        '''
+        Read a document in the line format:
+            <line>    .=. <target> qid:<qid> <feature>:<value> <feature>:<value> ... <feature>:<value> # <info>
+            <target>  .=. <positive integer>
+            <qid>     .=. <positive integer>
+            <feature> .=. <positive integer>
+            <value>   .=. <float>
+            <info>    .=. <string>
+        '''
         if "#" in line:
             index = line.index("#")
             line = line[:index]
