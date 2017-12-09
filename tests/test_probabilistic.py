@@ -4,12 +4,11 @@ from interleaving import TeamRanking
 import json
 import numpy as np
 from .test_methods import TestMethods
-np.random.seed(0)
 
 class TestProbabilistic(TestMethods):
     def test_score_interleave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 3]], [1, 2])
-        result = il.Probabilistic._compute_scores(ranking, [0, 1])
+        result = il.Probabilistic.compute_scores(ranking, [0, 1])
         assert result.allocations == {
             (0, 0): ([2, 0], 1 / (1 + 0.125) * (0.125 / (0.125))),
             (0, 1): ([1, 1], 1 / (1 + 0.125) * (1 / (1 + 0.125))),
@@ -25,7 +24,7 @@ class TestProbabilistic(TestMethods):
 
     def test_score_multileave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
-        result = il.Probabilistic._compute_scores(ranking, [0, 1])
+        result = il.Probabilistic.compute_scores(ranking, [0, 1])
         assert result.allocations == {
             (0, 0): (
                 [2, 0, 0],

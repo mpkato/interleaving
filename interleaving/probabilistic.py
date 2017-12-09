@@ -123,7 +123,7 @@ class Probabilistic(InterleavingMethod):
         return result
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks, tau=3.0, n=10**4):
+    def compute_scores(cls, ranking, clicks, tau=3.0, n=10**4):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user

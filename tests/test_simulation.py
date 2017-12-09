@@ -4,12 +4,11 @@ import math
 import interleaving as il
 import numpy as np
 from collections import defaultdict
-np.random.seed(0)
 
 class TestSimulation(object):
 
-    def test_simulator_evaluate(self, data_filepath):
-        sim = il.simulation.Simulator(data_filepath, 10)
+    def test_simulator_evaluate(self, data_filepaths):
+        sim = il.simulation.Simulator(data_filepaths, 10)
         m1 = il.simulation.Ranker(lambda x: x[1])
         m2 = il.simulation.Ranker(lambda x: x[2])
         m3 = il.simulation.Ranker(lambda x: x[3])
@@ -26,8 +25,8 @@ class TestSimulation(object):
         assert result[(0, 2)] > result[(2, 0)]
         assert result[(1, 2)] > result[(2, 1)]
 
-    def test_simulator_ndcg(self, data_filepath):
-        sim = il.simulation.Simulator(data_filepath, 1)
+    def test_simulator_ndcg(self, data_filepaths):
+        sim = il.simulation.Simulator(data_filepaths, 1)
 
         m1 = il.simulation.Ranker(lambda x: x[1])
         m2 = il.simulation.Ranker(lambda x: x[2])
@@ -41,7 +40,7 @@ class TestSimulation(object):
         ndcg_2 = (1.0 / np.log2(3.0)) / (2.0 + 1.0 / np.log2(3.0))
         assert np.abs(ndcgs[2] - ndcg_2) < 10e-10
 
-    def test_measure_error(self, data_filepath):
+    def test_measure_error(self, data_filepaths):
         # 2 > 1 > 0
         il_result = [[(0, 2)], [(2, 0), (2, 1)], [(2, 0), (1, 0)]]
         ndcg_result = {0: 0.2, 1: 0.1, 2: 0.3}
@@ -50,6 +49,6 @@ class TestSimulation(object):
         assert error == 2 / 6
 
     @pytest.fixture
-    def data_filepath(self):
-        return os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            "fixtures", "l2r_sample.txt")
+    def data_filepaths(self):
+        return [os.path.join(os.path.dirname(os.path.abspath(__file__)),
+            "fixtures", "l2r_sample.txt")]
