@@ -7,7 +7,7 @@ from collections import defaultdict
 
 class TestSimulation(object):
 
-    def test_simulator_evaluate(self, data_filepaths):
+    def test_simulator_run(self, data_filepaths):
         sim = il.simulation.Simulator(data_filepaths, 10)
         m1 = il.simulation.Ranker(lambda x: x[1])
         m2 = il.simulation.Ranker(lambda x: x[2])
@@ -15,7 +15,7 @@ class TestSimulation(object):
         rankers = [m1, m2, m3]
         user = il.simulation.User(click_probs=[0.0, 0.5, 1.0],
             stop_probs=[0.0, 0.0, 0.0])
-        res = sim.evaluate(rankers, user, il.TeamDraft)
+        res = sim.run(rankers, user, il.TeamDraft)
         assert len(res) == 10
         result = defaultdict(int)
         for r in res:

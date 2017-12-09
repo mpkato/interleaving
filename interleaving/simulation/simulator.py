@@ -50,7 +50,7 @@ class Simulator(object):
             result[idx] = np.average(result[idx])
         return result
 
-    def evaluate(self, rankers, user, method):
+    def run(self, rankers, user, method):
         '''
         Args:
             rankers: instances of Ranker to be compared
