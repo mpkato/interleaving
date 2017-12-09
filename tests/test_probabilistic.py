@@ -72,7 +72,7 @@ class TestProbabilistic(TestMethods):
             [(0, 1), (0, 2), (1, 2)])
 
     def test_init_sampling(self):
-        p = il.Probabilistic([[1, 2], [1, 3]], sample_num=200000, replace=False)
+        p = il.Probabilistic([[1, 2], [1, 3]], sample_num=20000, replace=False)
         rankings, probabilities = zip(*p.ranking_distribution)
         ideal = set([(1, 3), (1, 2), (2, 1), (2, 3), (3, 1), (3, 2)])
         assert ideal == set([tuple(r) for r in rankings])

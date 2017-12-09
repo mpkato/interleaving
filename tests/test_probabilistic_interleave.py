@@ -5,8 +5,7 @@ from .test_methods import TestMethods
 np.random.seed(0)
 
 class TestProbabilisticInterleave(TestMethods):
-    n = 512     # Number of times of probabilistic tests
-    nn = n * n  # Number of times of more probabilistic tests
+    n = 3000     # Number of times of probabilistic tests
 
     def test_sanity(self):
         assert il.Probabilistic([[0], [0]]).interleave() == [0]
@@ -15,16 +14,16 @@ class TestProbabilisticInterleave(TestMethods):
         ideal = 0.5
         counts = [0.0, 0.0]
         pm = il.Probabilistic([[0], [1]])
-        for i in range(self.nn):
+        for i in range(self.n):
             r = pm.interleave()
             counts[r[0]] += 1
         for j in [0, 1]:
-            self.assert_almost_equal(ideal, counts[j] / self.nn)
+            self.assert_almost_equal(ideal, counts[j] / self.n)
 
     def test_ranking_with_teams(self):
         result = defaultdict(int)
         pm = il.Probabilistic([[1, 2, 3], [2, 3, 1]])
-        for i in range(self.nn):
+        for i in range(self.n):
             result[pm.interleave()] += 1
         assert len(result) == 6
 
@@ -44,10 +43,10 @@ class TestProbabilisticInterleave(TestMethods):
             counts[d] = 0.0
 
         pm = il.Probabilistic([[0, 1, 2], [0, 1, 2]])
-        for i in range(self.nn):
+        for i in range(self.n):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
-            self.assert_almost_equal(ideals[d], counts[d] / self.nn)
+            self.assert_almost_equal(ideals[d], counts[d] / self.n)
 
     def test_interaction(self):
         ideals = {0: 0.44444, 1: 0.50000, 2: 0.05556}
@@ -56,10 +55,10 @@ class TestProbabilisticInterleave(TestMethods):
             counts[d] = 0.0
 
         pm = il.Probabilistic([[0, 1], [1, 2]])
-        for i in range(self.nn):
+        for i in range(self.n):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
-            self.assert_almost_equal(ideals[d], counts[d] / self.nn)
+            self.assert_almost_equal(ideals[d], counts[d] / self.n)
 
     def test_uniqueness(self):
         pm = il.Probabilistic([[0, 1, 2], [1, 2, 0]])
