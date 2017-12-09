@@ -94,7 +94,7 @@ class InterleavingMethod(object):
         e.g. a result [(1, 0), (2, 1), (2, 0)] indicates
         ranker 1 won ranker 0, and ranker 2 won ranker 0 as well as ranker 1.
         '''
-        scores = cls._compute_scores(ranking, clicks)
+        scores = cls.compute_scores(ranking, clicks)
         result = []
         for i in range(len(scores)):
             for j in range(i+1, len(scores)):
@@ -107,7 +107,7 @@ class InterleavingMethod(object):
         return result
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks):
+    def compute_scores(cls, ranking, clicks):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user

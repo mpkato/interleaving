@@ -1,8 +1,5 @@
 import interleaving as il
-import numpy as np
 from .test_methods import TestMethods
-np.random.seed(0)
-
 
 class TestProbabilisticMultileave(TestMethods):
     n = 5000     # Number of times of probabilistic tests
