@@ -17,17 +17,19 @@ class Simulator(object):
             <feature> .=. <positive integer>
             <value>   .=. <float>
             <info>    .=. <string>
+        usertypes:        a dict of {usertype: simulation.User}
         query_sample_num: the number of query samplings
         topk:             the number of documents shown to users in interleaving
     '''
 
-    def __init__(self, dataset_filepaths, query_sample_num, topk=10):
+    def __init__(self, dataset_filepaths, usertypes, query_sample_num, topk):
         self.docs = defaultdict(list)
         for dataset_filepath in dataset_filepaths:
             with open(dataset_filepath) as f:
                 for line in f:
                     d = Document.readline(line)
                     self.docs[d.qid].append(d)
+        self.usertypes = usertypes
         self.query_sample_num = query_sample_num
         self.topk = topk
 
@@ -50,7 +52,7 @@ class Simulator(object):
             result[idx] = np.average(result[idx])
         return result
 
-    def run(self, rankers, user, method):
+    def run(self, rankers, method):
         '''
         Args:
             rankers: instances of Ranker to be compared
@@ -71,16 +73,17 @@ class Simulator(object):
                 ranked_lists.append(res)
             methods[q] = method(ranked_lists, max_length=topk)
 
-        result = []
+        result = defaultdict(list)
         queries = np.random.choice(list(self.docs.keys()),
             self.query_sample_num, replace=True)
         for q in queries:
             documents = self.docs[q]
             rels = {id(d): d.rel for d in documents}
             ranking = methods[q].interleave()
-            clicks = user.examine(ranking, rels)
-            res = method.evaluate(ranking, clicks)
-            result.append(res)
+            for usertype, user in self.usertypes.items():
+                clicks = user.examine(ranking, rels)
+                res = method.compute_scores(ranking, clicks)
+                result[usertype].append(res)
         return result
 
     @classmethod
@@ -92,21 +95,32 @@ class Simulator(object):
               where P^_{i, j} = 1 (i won j) or 0 (j won i) in the interleaving,
               and P_{i, j} = 1 (i won j) or 0 (j won i) in terms fo nDCG.
         '''
+
         prefs = defaultdict(int)
-        for res in il_result:
-            for r in res:
-                prefs[r] += 1
+        for scores in il_result:
+            for i in range(len(scores)):
+                for j in range(i+1, len(scores)):
+                    if scores[i] > scores[j]:
+                        prefs[(i, j)] += 1
+                    elif scores[i] < scores[j]:
+                        prefs[(j, i)] += 1
+                    else: # scores[i] == scores[j]
+                        pass
 
         result = 0.0
         for i in ndcg_result:
             for j in ndcg_result:
                 if i == j:
                     continue
-                paired_ndcg = ndcg_result[i] > ndcg_result[j]
-                paired_pref = prefs[(i, j)] > prefs[(j, i)]
-                if (paired_ndcg and not paired_pref)\
-                    or (not paired_ndcg and paired_pref):
+                cond = (ndcg_result[i] - ndcg_result[j])\
+                    * (prefs[(i, j)] - prefs[(j, i)])
+                if cond < 0: # a different pairwise preference
                     result += 1
+                elif cond == 0:
+                    # for preciseness
+                    if not ((ndcg_result[i] == ndcg_result[j])\
+                        and (prefs[(i, j)] == prefs[(j, i)])):
+                        result += 1
         ranker_num = len(ndcg_result)
         result /= ranker_num * (ranker_num - 1)
         return result
