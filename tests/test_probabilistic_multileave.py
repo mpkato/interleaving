@@ -20,14 +20,6 @@ class TestProbabilisticMultileave(TestMethods):
         for j in range(0, l):
             self.assert_almost_equal(ideal, counts[j] / self.n)
 
-    def test_round_robin(self):
-        rankings = [[0, 0, 0], [1, 1, 1], [2, 2, 2]]
-        pm = il.Probabilistic(rankings)
-        for i in range(0, self.n):
-            result = pm.interleave()
-            result.sort()
-            assert result == [0, 1, 2]
-
     def test_softmax(self):
         rankings = [[0, 1, 2]]
         ideals = {0: 0.86056, 1: 0.10757, 2: 0.03187}

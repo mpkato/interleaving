@@ -25,6 +25,7 @@ class TestProbabilistic(TestMethods):
     def test_score_multileave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
         result = il.Probabilistic.compute_scores(ranking, [0, 1])
+        print(result.allocations)
         assert result.allocations == {
             (0, 0): (
                 [2, 0, 0],
