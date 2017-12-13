@@ -3,6 +3,7 @@ from interleaving import ProbabilisticRanking
 from interleaving import TeamRanking
 import json
 import numpy as np
+from collections import defaultdict
 from .test_methods import TestMethods
 
 class TestProbabilistic(TestMethods):
@@ -25,7 +26,6 @@ class TestProbabilistic(TestMethods):
     def test_score_multileave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
         result = il.Probabilistic.compute_scores(ranking, [0, 1])
-        print(result.allocations)
         assert result.allocations == {
             (0, 0): (
                 [2, 0, 0],
@@ -104,3 +104,36 @@ class TestProbabilistic(TestMethods):
         j1 = [r.lists for r in p._rankings]
         j2 = [r['ranking']['lists'] for r in obj.values()]
         assert j1 == j2
+
+    def test_softmax(self):
+        softmax = il.Probabilistic.Softmax(2.0, [0, 1, 2])
+        p = softmax.delete(0)
+        assert p == 1.0 * 1.0 / np.sum([1.0, 1.0 / 4.0, 1.0 / 9.0])
+        softmax.reset()
+        p = softmax.delete(1)
+        assert p == 1.0 / 4.0 * 1.0 / np.sum([1.0, 1.0 / 4.0, 1.0 / 9.0])
+        softmax.reset()
+        p = softmax.delete(2)
+        assert p == 1.0 / 9.0 * 1.0 / np.sum([1.0, 1.0 / 4.0, 1.0 / 9.0])
+        softmax.reset()
+        p = softmax.delete(0)
+        assert p == 1.0 * 1.0 / np.sum([1.0, 1.0 / 4.0, 1.0 / 9.0])
+        p = softmax.delete(1)
+        self.assert_almost_equal(p,
+            1.0 / 4.0 * 1.0 / np.sum([1.0 / 4.0, 1.0 / 9.0]))
+        p = softmax.delete(2)
+        self.assert_almost_equal(p, 1.0)
+
+    def test_sampling(self):
+        n = 5000
+        softmax = il.Probabilistic.Softmax(2.0, [0, 1, 2])
+        result = defaultdict(int)
+        for i in range(n):
+            sample = softmax.sample()
+            result[sample] += 1
+            softmax.reset()
+
+        denominator = np.sum([1.0, 1.0 / 4.0, 1.0 / 9.0])
+        self.assert_almost_equal(result[0] / n, 1.0 / denominator)
+        self.assert_almost_equal(result[1] / n, 1.0 / 4.0 / denominator)
+        self.assert_almost_equal(result[2] / n, 1.0 / 9.0 / denominator)

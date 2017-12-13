@@ -155,30 +155,41 @@ class Probabilistic(InterleavingMethod):
             A_prime = [(np.zeros(len(R)), 0.0, [])]
             threshold = 1 / len(R) * n ** (1 / len(L))
             for d in L:
-                A, A_prime = A_prime, []
+                # check clicks
+                if len(C) == 0:
+                    break
+                d_in_C = d in C
+                if d_in_C:
+                    C.remove(d)
+
+                # check document probability
                 P = np.zeros(len(R))
                 R_used = []
                 for j, R_j in enumerate(R):
                     P[j] = R_j.delete(d)
                     if P[j] > 0.0:
                         R_used.append((j, R_j))
-                d_in_C = d in C
+                if len(R_used) == 0:
+                    continue
+
+                A, A_prime = A_prime, []
                 for (o, p, a) in A:
-                    if len(R_used) == 0:
-                        continue
                     is_pass = np.random.rand(len(R_used)) <= threshold
                     R_used = [R_used[k] for k in range(len(R_used))
                         if is_pass[k]]
                     for j, R_j in R_used:
-                        p_prime = p + np.log(P[j] / 2)
+                        p_prime = p + np.log(P[j])
                         o_prime = np.copy(o)
                         if d_in_C:
                             o_prime[j] += 1
                         A_prime.append((o_prime, p_prime, a + [j]))
+
             o = np.zeros(len(R))
             allocations = {}
-            for (o_prime, p_prime, a) in A_prime:
-                p_prime = np.exp(p_prime)
+            p_all = np.array([np.exp(p_prime) for _, p_prime, _ in A_prime])
+            p_sum = np.sum(p_all)
+            for idx, (o_prime, _, a) in enumerate(A_prime):
+                p_prime = p_all[idx] / p_sum
                 o += o_prime * p_prime
                 allocations[tuple(a)] = (list(o_prime), p_prime)
             result = cls.ProbablisticScore({i: o[i] for i in range(len(R))})
