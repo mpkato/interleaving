@@ -5,11 +5,9 @@ import numpy as np
 
 class Simulator(object):
     '''
-    A simulator based on a dataset
-    '''
+    A simulator based on a learning to rank dataset.
 
-    def __init__(self, dataset_filepath, query_sample_num, topk=10):
-        '''
+    Args:
         dataset_filepath:
             path to the file including relevance grade and
             features in the format shown below:
@@ -21,7 +19,9 @@ class Simulator(object):
             <info>    .=. <string>
         query_sample_num: the number of query samplings
         topk:             the number of documents shown to users in interleaving
-        '''
+    '''
+
+    def __init__(self, dataset_filepath, query_sample_num, topk=10):
         self.docs = defaultdict(list)
         with open(dataset_filepath) as f:
             for line in f:
@@ -50,10 +50,12 @@ class Simulator(object):
 
     def evaluate(self, rankers, user, method, sample_num=None):
         '''
+        Args:
         rankers: instances of Ranker to be compared
         user: an instance of User that is assumed in the simulation
         method: a class of intereaving method used in the simulation
 
+        Returns:
         Return a dict indicating the number of pairs (i, j)
         where i won j.
         '''
