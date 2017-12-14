@@ -3,6 +3,7 @@ from .interleaving_method import InterleavingMethod
 import numpy as np
 import scipy.misc as misc
 
+
 class Probabilistic(InterleavingMethod):
     '''
     Probabilistic Interleaving

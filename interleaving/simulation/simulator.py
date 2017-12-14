@@ -5,7 +5,7 @@ import numpy as np
 
 class Simulator(object):
     '''
-    A simulator based on a learning to rank dataset
+    A simulator based on a learning to rank dataset.
 
     Args:
         dataset_filepaths:
