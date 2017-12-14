@@ -3,10 +3,24 @@ from .interleaving_method import InterleavingMethod
 import numpy as np
 from scipy.optimize import linprog
 
+
 class Optimized(InterleavingMethod):
     '''
     Optimized Interleaving
+
+    Args:
+        lists: lists of document IDs
+        max_length: the maximum length of resultant interleaving.
+                    If this is None (default), it is set to the minimum length
+                    of the given lists.
+        sample_num: If this is None (default), an interleaved ranking is
+                    generated every time when `interleave` is called.
+                    Otherwise, `sample_num` rankings are sampled in the
+                    initialization, one of which is returned when `interleave`
+                    is called.
+        credit_func: either 'inverse' (1/rank) or 'negative' (-rank)
     '''
+
     def __init__(self, lists, max_length=None, sample_num=None,
         credit_func='inverse'):
         '''
