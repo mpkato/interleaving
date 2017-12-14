@@ -5,8 +5,7 @@ np.random.seed(0)
 
 
 class TestProbabilisticMultileave(TestMethods):
-    n = 512     # Number of times of probabilistic tests
-    nn = n * n  # Number of times of more probabilistic tests
+    n = 5000     # Number of times of probabilistic tests
 
     def test_sanity(self):
         rankings = [[0]]
@@ -19,10 +18,10 @@ class TestProbabilisticMultileave(TestMethods):
         ideal = 1.0 / l
         counts = [0.0] * l
         pm = il.Probabilistic(rankings)
-        for i in range(0, self.nn):
+        for i in range(0, self.n):
             counts[pm.interleave()[0]] += 1
         for j in range(0, l):
-            self.assert_almost_equal(ideal, counts[j] / self.nn)
+            self.assert_almost_equal(ideal, counts[j] / self.n)
 
     def test_round_robin(self):
         rankings = [[0, 0, 0], [1, 1, 1], [2, 2, 2]]
@@ -39,10 +38,10 @@ class TestProbabilisticMultileave(TestMethods):
         for d in ideals:
             counts[d] = 0.0
         pm = il.Probabilistic(rankings)
-        for i in range(0, self.nn):
+        for i in range(0, self.n):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
-            self.assert_almost_equal(ideals[d], counts[d] / self.nn)
+            self.assert_almost_equal(ideals[d], counts[d] / self.n)
 
     def test_interaction(self):
         rankings = [[0, 1], [1, 2]]
@@ -51,10 +50,10 @@ class TestProbabilisticMultileave(TestMethods):
         for d in ideals:
             counts[d] = 0.0
         pm = il.Probabilistic(rankings)
-        for i in range(0, self.nn):
+        for i in range(0, self.n):
             counts[pm.interleave()[0]] += 1
         for d in ideals:
-            self.assert_almost_equal(ideals[d], counts[d] / self.nn)
+            self.assert_almost_equal(ideals[d], counts[d] / self.n)
 
     def test_uniqueness(self):
         rankings = [

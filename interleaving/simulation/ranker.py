@@ -1,47 +1,24 @@
-import numpy as np
-
-
 class Ranker(object):
     '''
-    A ranker for simulation.
-    '''
-
-    def rank(self, documents, relevance):
-        '''
-        Args:
-            documents: a list of document IDs
-            relevance: a dict of relevance for each document ID
-        '''
-        raise NotImplementedError()
-
-
-class NoisyRelevanceRanker(Ranker):
-    '''
+    A ranker that sorts documents by their features.
+    
     Args:
-        noise: the variance of a normal distribution used as noise to
-               relevance scores.
+        scorer: a function that takes a feature dict (Document.features)
+        and returns a ranking score
     '''
+    def __init__(self, scorer):
+        self.scorer = scorer
 
-    def __init__(self, noise):
-        '''
-        noise: the variance of a normal distribution used as noise to
-        relevance scores.
-        '''
-        self.noise = noise
-
-    def rank(self, documents, relevance):
+    def rank(self, documents):
         '''
         Args:
             documents: a list of document IDs
-            relevance: a dict of relevance for each document ID
 
         Returns:
             a ranked list of document IDs that are sorted
-            by given relevance with noise generated from a normal distribution.
+            by the descending order of `scorer(features)`.
         '''
-        scores = np.array([-relevance.get(d, 0) for d in documents],
-            dtype=np.float64)
-        n = np.random.normal(0, self.noise, len(scores))
-        scores += n
-        result = [documents[i] for i in list(np.argsort(scores))]
+        result = sorted(documents,
+            key=lambda x: self.scorer(x.features),
+            reverse=True)
         return result
