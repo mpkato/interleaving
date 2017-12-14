@@ -26,7 +26,7 @@ class TestProbabilistic(TestMethods):
     def test_score_multileave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
         result = il.Probabilistic.compute_scores(ranking, [0, 1])
-        assert result.allocations == {
+        ideal = {
             (0, 0): (
                 [2, 0, 0],
                 np.exp(
@@ -65,6 +65,11 @@ class TestProbabilistic(TestMethods):
                 )
             ),
         }
+        p_sum = np.sum([p for _, p in ideal.values()])
+        ideal = {a: (o, p / p_sum) for a, (o, p) in ideal.items()}
+        for a in result.allocations:
+            assert ideal[a][0] == result.allocations[a][0]
+            self.assert_almost_equal(ideal[a][1], result.allocations[a][1])
 
     def test_evaluate_multileave(self):
         ranking = ProbabilisticRanking([[1, 2], [2, 1], [2, 3]], [1, 2])
