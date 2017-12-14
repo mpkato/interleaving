@@ -1,7 +1,7 @@
 from .ranking import ProbabilisticRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
-
+import scipy.misc as misc
 
 class Probabilistic(InterleavingMethod):
     '''
@@ -174,28 +174,31 @@ class Probabilistic(InterleavingMethod):
             A_prime = [(np.zeros(len(R)), 0.0, [])]
             threshold = 1 / len(R) * n ** (1 / len(L))
             for d in L:
-                # check clicks
+                # Break if no click
+                # Stop when all the clicks are examined.
                 if len(C) == 0:
                     break
                 d_in_C = d in C
                 if d_in_C:
                     C.remove(d)
 
-                # check document probability
+                # Compute the document probability
+                # Only keep non-zero rankers
                 P = np.zeros(len(R))
-                R_used = []
+                R_non_zero = []
                 for j, R_j in enumerate(R):
                     P[j] = R_j.delete(d)
                     if P[j] > 0.0:
-                        R_used.append((j, R_j))
-                if len(R_used) == 0:
+                        R_non_zero.append((j, R_j))
+                if len(R_non_zero) == 0:
                     continue
 
                 A, A_prime = A_prime, []
-                for (o, p, a) in A:
-                    is_pass = np.random.rand(len(R_used)) <= threshold
-                    R_used = [R_used[k] for k in range(len(R_used))
-                        if is_pass[k]]
+                is_pass = np.random.rand(len(A), len(R_non_zero)) <= threshold
+                for i, (o, p, a) in enumerate(A):
+                    # Skip some assignments with certain probability
+                    R_used = [R_non_zero[k] for k in range(len(R_non_zero))
+                        if is_pass[i][k]]
                     for j, R_j in R_used:
                         p_prime = p + np.log(P[j])
                         o_prime = np.copy(o)
@@ -205,12 +208,14 @@ class Probabilistic(InterleavingMethod):
 
             o = np.zeros(len(R))
             allocations = {}
-            p_all = np.array([np.exp(p_prime) for _, p_prime, _ in A_prime])
-            p_sum = np.sum(p_all)
-            for idx, (o_prime, _, a) in enumerate(A_prime):
-                p_prime = p_all[idx] / p_sum
-                o += o_prime * p_prime
-                allocations[tuple(a)] = (list(o_prime), p_prime)
+            if len(A_prime) > 0:
+                # Use logsumexp to avoid over-flow
+                p_log_all = np.array([p_prime for _, p_prime, _ in A_prime])
+                p_all = np.exp(p_log_all - misc.logsumexp(p_log_all))
+                for idx, (o_prime, _, a) in enumerate(A_prime):
+                    p_prime = p_all[idx]
+                    o += o_prime * p_prime
+                    allocations[tuple(a)] = (list(o_prime), p_prime)
             result = cls.ProbablisticScore({i: o[i] for i in range(len(R))})
             result.allocations = allocations
             return result
