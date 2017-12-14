@@ -1,8 +1,6 @@
 import interleaving as il
 from interleaving import TeamRanking
 import json
-import numpy as np
-np.random.seed(0)
 from .test_methods import TestMethods
 
 class TestTeamDraft(TestMethods):

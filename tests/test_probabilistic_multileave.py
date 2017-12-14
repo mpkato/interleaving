@@ -1,8 +1,7 @@
+from collections import defaultdict
 import interleaving as il
 import numpy as np
 from .test_methods import TestMethods
-np.random.seed(0)
-
 
 class TestProbabilisticMultileave(TestMethods):
     n = 5000     # Number of times of probabilistic tests
@@ -22,14 +21,6 @@ class TestProbabilisticMultileave(TestMethods):
             counts[pm.interleave()[0]] += 1
         for j in range(0, l):
             self.assert_almost_equal(ideal, counts[j] / self.n)
-
-    def test_round_robin(self):
-        rankings = [[0, 0, 0], [1, 1, 1], [2, 2, 2]]
-        pm = il.Probabilistic(rankings)
-        for i in range(0, self.n):
-            result = pm.interleave()
-            result.sort()
-            assert result == [0, 1, 2]
 
     def test_softmax(self):
         rankings = [[0, 1, 2]]
@@ -74,3 +65,48 @@ class TestProbabilisticMultileave(TestMethods):
         pm = il.Probabilistic(rankings)
         assert 1 == len(pm.interleave())
 
+    def test_selected_ranker(self):
+        rankings = [[0, 3, 6], [1, 4, 7], [2, 5, 8]]
+        pm = il.Probabilistic(rankings)
+        selected_rankers = defaultdict(int)
+        for i in range(self.n):
+            r = pm.interleave()
+            selected_rankers[r[0] % 3] += 1
+        self.assert_almost_equal(selected_rankers[0] / self.n, 1 / 3)
+        self.assert_almost_equal(selected_rankers[1] / self.n, 1 / 3)
+        self.assert_almost_equal(selected_rankers[2] / self.n, 1 / 3)
+
+        selected_rankers = defaultdict(int)
+        for i in range(self.n):
+            pm = il.Probabilistic(rankings)
+            r = pm.interleave()
+            selected_rankers[r[0] % 3] += 1
+        self.assert_almost_equal(selected_rankers[0] / self.n, 1 / 3)
+        self.assert_almost_equal(selected_rankers[1] / self.n, 1 / 3)
+        self.assert_almost_equal(selected_rankers[2] / self.n, 1 / 3)
+
+    def test_compute_scores(self):
+        rankings = [[0, 1, 2], [2, 1, 0], [1, 0, 2]]
+        pm = il.Probabilistic(rankings)
+        prefs = defaultdict(int)
+        credits = defaultdict(float)
+        for i in range(self.n):
+            r = pm.interleave()
+            clicks = []
+            for idx, d in enumerate(r):
+                if np.random.rand() < (d + 0.1) / 3.3:
+                    clicks = [idx]
+            res = pm.compute_scores(r, clicks)
+            for idx in res:
+                credits[idx] += res[idx]
+        for i in range(len(credits)):
+            for j in range(i+1, len(credits)):
+                if credits[i] > credits[j]:
+                    prefs[(i, j)] += 1
+                elif credits[j] > credits[i]:
+                    prefs[(j, i)] += 1
+        print(credits)
+        print(prefs)
+        assert prefs[(1, 0)] > prefs[(0, 1)]
+        assert prefs[(1, 2)] > prefs[(2, 1)]
+        assert prefs[(2, 0)] > prefs[(0, 2)]

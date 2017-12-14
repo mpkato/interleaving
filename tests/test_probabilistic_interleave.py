@@ -2,10 +2,9 @@ import interleaving as il
 import numpy as np
 from collections import defaultdict
 from .test_methods import TestMethods
-np.random.seed(0)
 
 class TestProbabilisticInterleave(TestMethods):
-    n = 3000     # Number of times of probabilistic tests
+    n = 5000     # Number of times of probabilistic tests
 
     def test_sanity(self):
         assert il.Probabilistic([[0], [0]]).interleave() == [0]

@@ -3,7 +3,6 @@ from interleaving import CreditRanking
 import json
 import numpy as np
 import pytest
-np.random.seed(0)
 from .test_methods import TestMethods
 
 class TestOptimized(TestMethods):

@@ -10,14 +10,8 @@ class Probabilistic(InterleavingMethod):
         def __init__(self, tau, ranking):
             self.tau = tau
             self.ranking = ranking
-            self.numerators = np.ndarray(len(ranking))
-            self.doc_index = {}
-            for r in range(len(ranking)):
-                self.numerators[r] = 1.0 / (r+1) ** tau
-                docid = ranking[r]
-                if not docid in self.doc_index:
-                    self.doc_index[docid] = set()
-                self.doc_index[docid].add(r)
+            self.numerators = 1.0 / np.array(range(1, len(ranking)+1)) ** tau
+            self.doc_index = {docid: r for r, docid in enumerate(ranking)}
             self.denominator = np.sum(self.numerators)
             self._original_denominator = self.denominator
             self._non_zero_index = set(range(len(self.numerators)))
@@ -25,19 +19,18 @@ class Probabilistic(InterleavingMethod):
         def delete(self, docid):
             if docid not in self.doc_index:
                 return 0.0
-            cum_numerators = 0.0
             old_denominator = self.denominator
-            for idx in self.doc_index[docid]:
-                cum_numerators += self.numerators[idx]
-                self.denominator -= self.numerators[idx]
-                self._non_zero_index.remove(idx)
+            idx = self.doc_index[docid]
+            numerator = self.numerators[idx]
+            self.denominator -= numerator
+            self._non_zero_index.remove(idx)
             if not self.denominator > 0:
                 self.denominator = 0
             # Returns probability of sampling docid before deletion
             if old_denominator <= 0:
                 return 0.0
             else:
-                return cum_numerators / old_denominator
+                return numerator / old_denominator
 
         def reset(self):
             self.denominator = self._original_denominator
@@ -123,7 +116,7 @@ class Probabilistic(InterleavingMethod):
         return result
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks, tau=3.0, n=10**4):
+    def compute_scores(cls, ranking, clicks, tau=3.0, n=10**4):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user
@@ -159,31 +152,48 @@ class Probabilistic(InterleavingMethod):
         if 2 < len(ranking.lists):
             # [Schuth+, SIGIR 2015]
             R = [cls.Softmax(tau, R_j) for R_j in ranking.lists]
-            A_prime = [([0] * len(R), 0.0, [])]
+            A_prime = [(np.zeros(len(R)), 0.0, [])]
             threshold = 1 / len(R) * n ** (1 / len(L))
             for d in L:
-                A, A_prime = A_prime, []
-                P = [None] * len(R)
+                # check clicks
+                if len(C) == 0:
+                    break
+                d_in_C = d in C
+                if d_in_C:
+                    C.remove(d)
+
+                # check document probability
+                P = np.zeros(len(R))
+                R_used = []
                 for j, R_j in enumerate(R):
                     P[j] = R_j.delete(d)
+                    if P[j] > 0.0:
+                        R_used.append((j, R_j))
+                if len(R_used) == 0:
+                    continue
+
+                A, A_prime = A_prime, []
                 for (o, p, a) in A:
-                    for j, R_j in enumerate(R):
-                        if threshold < np.random.rand():
-                            continue
-                        if P[j] <= 0.0:
-                            continue
-                        p_prime = p + np.log(P[j] / 2)
-                        o_prime = o[:]
-                        if d in C:
+                    is_pass = np.random.rand(len(R_used)) <= threshold
+                    R_used = [R_used[k] for k in range(len(R_used))
+                        if is_pass[k]]
+                    for j, R_j in R_used:
+                        p_prime = p + np.log(P[j])
+                        o_prime = np.copy(o)
+                        if d_in_C:
                             o_prime[j] += 1
                         A_prime.append((o_prime, p_prime, a + [j]))
-            o = cls.ProbablisticScore({i: 0.0 for i in range(len(R))})
-            o.allocations = {}
-            for (o_prime, p_prime, a) in A_prime:
-                p_prime = np.exp(p_prime)
-                for i in range(len(R)):
-                    o[i] += o_prime[i] * p_prime
-                o.allocations[tuple(a)] = (o_prime, p_prime)
-            return o
+
+            o = np.zeros(len(R))
+            allocations = {}
+            p_all = np.array([np.exp(p_prime) for _, p_prime, _ in A_prime])
+            p_sum = np.sum(p_all)
+            for idx, (o_prime, _, a) in enumerate(A_prime):
+                p_prime = p_all[idx] / p_sum
+                o += o_prime * p_prime
+                allocations[tuple(a)] = (list(o_prime), p_prime)
+            result = cls.ProbablisticScore({i: o[i] for i in range(len(R))})
+            result.allocations = allocations
+            return result
         else:
             raise ValueError('Invalid number of original lists')
