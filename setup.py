@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
-from setuptools import setup
+from setuptools import setup, Extension
 from setuptools.command.test import test as TestCommand
+from Cython.Distutils import build_ext
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -11,6 +12,15 @@ class PyTest(TestCommand):
     def run_tests(self):
         import pytest
         pytest.main(self.test_args)
+
+ext_modules = [
+    Extension(
+        'interleaving.cmethods',
+        sources=[
+            'interleaving/cmethods/probabilistic.pyx',
+        ]
+    )
+]
 
 setup(
     name = "interleaving",
@@ -30,5 +40,6 @@ setup(
         'pulp'
     ],
     tests_require=['pytest'],
-    cmdclass = {'test': PyTest}
+    ext_modules=ext_modules,
+    cmdclass = {'test': PyTest, 'build_ext': build_ext}
 )
