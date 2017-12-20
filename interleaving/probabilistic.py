@@ -192,14 +192,14 @@ class Probabilistic(InterleavingMethod):
                     if P[j] > 0.0:
                         R_non_zero.append((j, R_j))
                 if len(R_non_zero) == 0:
-                    continue
+                    break
 
                 A, A_prime = A_prime, []
                 is_pass = np.random.rand(len(A), len(R_non_zero)) <= threshold
                 for i, (o, p, a) in enumerate(A):
                     # Skip some assignments with certain probability
-                    R_used = [R_non_zero[k] for k in range(len(R_non_zero))
-                        if is_pass[i][k]]
+                    R_used = [R_non_zero[k]
+                        for k in range(len(R_non_zero)) if is_pass[i][k]]
                     for j, R_j in R_used:
                         p_prime = p + np.log(P[j])
                         o_prime = np.copy(o)
@@ -213,8 +213,8 @@ class Probabilistic(InterleavingMethod):
                 # Use logsumexp to avoid over-flow
                 p_log_all = np.array([p_prime for _, p_prime, _ in A_prime])
                 p_all = np.exp(p_log_all - misc.logsumexp(p_log_all))
-                for idx, (o_prime, _, a) in enumerate(A_prime):
-                    p_prime = p_all[idx]
+                for i, (o_prime, _, a) in enumerate(A_prime):
+                    p_prime = p_all[i]
                     o += o_prime * p_prime
                     allocations[tuple(a)] = (list(o_prime), p_prime)
             result = cls.ProbablisticScore({i: o[i] for i in range(len(R))})
