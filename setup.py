@@ -2,6 +2,7 @@
 from setuptools import setup, Extension
 from setuptools.command.test import test as TestCommand
 from Cython.Distutils import build_ext
+import numpy
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -18,8 +19,9 @@ ext_modules = [
         'interleaving.cmethods',
         sources=[
             'interleaving/cmethods/probabilistic.pyx',
-        ]
-    )
+        ],
+        language="c++",
+    ),
 ]
 
 setup(
@@ -41,5 +43,6 @@ setup(
     ],
     tests_require=['pytest'],
     ext_modules=ext_modules,
+    include_dirs=[numpy.get_include()],
     cmdclass = {'test': PyTest, 'build_ext': build_ext}
 )

@@ -1,8 +1,15 @@
+# cython: profile=True, boundscheck=False, wraparound=False
+
 from .ranking import ProbabilisticRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
+cimport numpy as np
 import scipy.misc as misc
 
+DOUBLE = np.float64
+ctypedef np.float64_t DOUBLE_t
+ctypedef np.int8_t BOOL_t
+from libcpp.vector cimport vector
 
 class Probabilistic(InterleavingMethod):
     '''
@@ -143,12 +150,22 @@ class Probabilistic(InterleavingMethod):
 
         Return a list of scores of each ranker.
         '''
+        cdef np.ndarray[DOUBLE_t, ndim=1] initial_o, o, o_prime
+        cdef np.ndarray[DOUBLE_t, ndim=1] p_log_all, p_all
+        cdef np.ndarray[BOOL_t, ndim=2, cast=True] is_pass
+        cdef int i, j, k
+        cdef float p, threshold
+        cdef np.ndarray[DOUBLE_t, ndim=1] P
+        cdef vector[int] R_non_zero, R_used
+        cdef vector[float] ps, p_primes
+        cdef list A, A_prime
+
         L = ranking
         C = {ranking[index] for index in clicks}
         if len(ranking.lists) == 2:
             # [Hofmann+, CIKM 2011] (Computationally expensive)
-            o = cls.ProbablisticScore({0: 0.0, 1: 0.0})
-            o.allocations = {}
+            result = cls.ProbablisticScore({0: 0.0, 1: 0.0})
+            result.allocations = {}
             for i in range(2 ** len(ranking)):
                 a = []
                 for d in L:
@@ -164,15 +181,18 @@ class Probabilistic(InterleavingMethod):
                     cum_p *= R[j].delete(d)
                     R[j_alter].delete(d)
                 if c[0] < c[1]:
-                    o[1] += cum_p
+                    result[1] += cum_p
                 elif c[1] < c[0]:
-                    o[0] += cum_p
-                o.allocations[tuple(a)] = (c, cum_p)
-            return o
+                    result[0] += cum_p
+                result.allocations[tuple(a)] = (c, cum_p)
+            return result
         if 2 < len(ranking.lists):
             # [Schuth+, SIGIR 2015]
             R = [cls.Softmax(tau, R_j) for R_j in ranking.lists]
-            A_prime = [(np.zeros(len(R)), 0.0, [])]
+            initial_o = np.zeros(len(R), dtype=DOUBLE)
+            p = 0.0
+            A_prime = [initial_o]
+            p_primes = [p]
             threshold = 1 / float(len(R)) * n ** (1 / float(len(L)))
             for d in L:
                 # Break if no click
@@ -185,42 +205,44 @@ class Probabilistic(InterleavingMethod):
 
                 # Compute the document probability
                 # Only keep non-zero rankers
-                P = np.zeros(len(R))
+                P = np.zeros(len(R), dtype=DOUBLE)
                 R_non_zero = []
                 for j, R_j in enumerate(R):
                     P[j] = R_j.delete(d)
                     if P[j] > 0.0:
-                        R_non_zero.append((j, R_j))
+                        R_non_zero.push_back(j)
                 if len(R_non_zero) == 0:
                     break
 
-
-                A, A_prime = A_prime, []
+                A = A_prime
+                A_prime = []
+                ps = p_primes
+                p_primes = []
                 is_pass = np.random.rand(len(A), len(R_non_zero)) <= threshold
-                test_is_pass = np.random.rand(10, len(R_non_zero))
-                for i, (o, p, a) in enumerate(A):
+                for i in range(len(A)):
+                    o = A[i]
+                    p = ps[i]
                     # Skip some assignments with certain probability
                     R_used = [R_non_zero[k]
                         for k in range(len(R_non_zero)) if is_pass[i][k]]
-                    for j, R_j in R_used:
+                    for j in R_used:
                         p_prime = p + np.log(P[j])
                         o_prime = np.copy(o)
                         if d_in_C:
                             o_prime[j] += 1
-                        A_prime.append((o_prime, p_prime, a + [j]))
+                        A_prime.append(o_prime)
+                        p_primes.push_back(p_prime)
 
-            o = np.zeros(len(R))
-            allocations = {}
+            o = np.zeros(len(R), dtype=DOUBLE)
             if len(A_prime) > 0:
                 # Use logsumexp to avoid over-flow
-                p_log_all = np.array([p_prime for _, p_prime, _ in A_prime])
+                p_log_all = np.array(p_primes)
                 p_all = np.exp(p_log_all - misc.logsumexp(p_log_all))
-                for i, (o_prime, _, a) in enumerate(A_prime):
+                for i in range(len(A_prime)):
+                    o_prime = A_prime[i]
                     p_prime = p_all[i]
                     o += o_prime * p_prime
-                    allocations[tuple(a)] = (list(o_prime), p_prime)
             result = cls.ProbablisticScore({i: o[i] for i in range(len(R))})
-            result.allocations = allocations
             return result
         else:
             raise ValueError('Invalid number of original lists')
