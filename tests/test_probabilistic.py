@@ -67,6 +67,11 @@ class TestProbabilistic(TestMethods):
         }
         p_sum = np.sum([p for _, p in ideal.values()])
         ideal = {a: (o, p / p_sum) for a, (o, p) in ideal.items()}
+
+        # C++ version does not keep allocations
+        if "cProbabilistic" in str(il.Probabilistic.__module__):
+            return
+
         for a in result.allocations:
             assert ideal[a][0] == result.allocations[a][0]
             self.assert_almost_equal(ideal[a][1], result.allocations[a][1])

@@ -16,9 +16,23 @@ class PyTest(TestCommand):
 
 ext_modules = [
     Extension(
-        'interleaving.cmethods',
+        'interleaving.cProbabilistic',
         sources=[
             'interleaving/cmethods/probabilistic.pyx',
+        ],
+        language="c++",
+    ),
+    Extension(
+        'interleaving.cOptimized',
+        sources=[
+            'interleaving/cmethods/optimized.pyx',
+        ],
+        language="c++",
+    ),
+    Extension(
+        'interleaving.cRoughlyOptimized',
+        sources=[
+            'interleaving/cmethods/roughly_optimized.pyx',
         ],
         language="c++",
     ),
@@ -39,7 +53,9 @@ setup(
     install_requires = [
         'numpy',
         'scipy',
-        'pulp'
+        'pulp',
+        'cython',
+        'cvxopt'
     ],
     tests_require=['pytest'],
     ext_modules=ext_modules,

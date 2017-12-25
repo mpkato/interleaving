@@ -1,3 +1,4 @@
+#!python
 # cython: profile=True, boundscheck=False, wraparound=False
 
 from .ranking import ProbabilisticRanking

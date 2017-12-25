@@ -1,5 +1,5 @@
 import interleaving as il
-from interleaving.cmethods import Probabilistic
+from interleaving.cProbabilistic import Probabilistic
 from .test_probabilistic import TestProbabilistic
 import pytest
 
