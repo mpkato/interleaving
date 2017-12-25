@@ -54,7 +54,6 @@ setup(
         'numpy',
         'scipy',
         'pulp',
-        'cython',
         'cvxopt'
     ],
     tests_require=['pytest'],
