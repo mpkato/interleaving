@@ -48,7 +48,8 @@ setup(
     license     = "MIT License",
     url = "https://github.com/mpkato/interleaving",
     setup_requires = [
-        'numpy'
+        'numpy',
+        'cython'
     ],
     install_requires = [
         'numpy',
