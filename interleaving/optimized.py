@@ -58,9 +58,10 @@ class Optimized(InterleavingMethod):
         Sample `sample_num` rankings
         '''
         distribution = {}
-        while len(distribution) < self.sample_num:
+        for i in range(self.sample_num):
             ranking = self._sample(self.max_length, self.lists)
-            distribution[ranking] = 1.0 / self.sample_num
+            existing_prob = distribution.get(ranking, 0.0)
+            distribution[ranking] = existing_prob + 1.0 / self.sample_num
         self._rankings, self._probabilities = zip(*distribution.items())
 
 
