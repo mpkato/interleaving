@@ -4,7 +4,8 @@
 from .ranking import CreditRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
-from scipy.optimize import linprog
+from cvxopt import solvers, matrix
+solvers.options['show_progress'] = False
 
 
 class Optimized(InterleavingMethod):
@@ -114,22 +115,50 @@ class Optimized(InterleavingMethod):
         Return a list of probabilities for input rankings
         '''
         # probability constraints
-        A_p_sum = np.array([1]*len(rankings))
+        A_p_sum = np.array([1.0]*len(rankings))
         # unbiasedness constraints
         ub_cons = self._unbiasedness_constraints(lists, rankings)
+        ub_cons = ub_cons[np.invert(np.all(ub_cons == 0, axis=1))]
+
         # sensitivity
         sensitivity = self._sensitivity(lists, rankings)
+        sensitivity = np.reshape(sensitivity, (sensitivity.shape[0], 1))
 
         # constraints
-        A_eq = np.vstack((A_p_sum, ub_cons))
+        if ub_cons.shape[0] > 0:
+            # ub_cons exist
+            A_eq = np.vstack((A_p_sum, ub_cons))
+        else:
+            # ub_cons is empty
+            A_eq = np.reshape(A_p_sum, (1, A_p_sum.shape[0]))
         b_eq = np.array([1.0] + [0.0]*ub_cons.shape[0])
 
+        G_0 = np.diag(-np.ones(len(rankings)))
+        h_0 = np.zeros(len(rankings))
+        G_1 = np.diag(np.ones(len(rankings)))
+        h_1 = np.ones(len(rankings))
+
+        G = np.vstack((G_0, G_1))
+        h = np.hstack((h_0, h_1))
+
+        sensitivity, G, h, A_eq, b_eq = map(matrix, (sensitivity, G, h, A_eq, b_eq))
+
         # solving the optimization problem
-        res = linprog(sensitivity, # objective function
-            A_eq=A_eq, b_eq=b_eq, # constraints
-            bounds=[(0, 1)]*len(rankings) # 0 <= p <= 1
+        solution = solvers.lp(sensitivity, # objective function
+            G, h, # constraints
+            A_eq, b_eq # 0 <= p <= 1
             )
-        return res.success, res.x, res.fun
+
+        p = np.array(solution['x'])
+        p = np.reshape(p, (len(rankings),))
+        p = np.abs(p)
+        p /= np.sum(p)
+
+        return (
+            solution['status'] == 'optimal',
+            p,
+            solution['primal objective']
+        )
 
     def _unbiasedness_constraints(self, lists, rankings):
         '''
@@ -148,7 +177,8 @@ class Optimized(InterleavingMethod):
                     if idx > 0:
                         credits[idx, rid, team] += credits[idx-1, rid, team]
         for i in range(len(lists) - 1):
-            result.append(credits[:, :, i] - credits[:, :, i+1])
+            diff = credits[:, :, i] - credits[:, :, i+1]
+            result.append(diff)
         result = np.vstack(result)
         return result
 
