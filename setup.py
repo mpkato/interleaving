@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
 from setuptools import setup, Extension
 from setuptools.command.test import test as TestCommand
-from Cython.Distutils import build_ext
-import numpy
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -14,29 +12,25 @@ class PyTest(TestCommand):
         import pytest
         pytest.main(self.test_args)
 
-ext_modules = [
-    Extension(
-        'interleaving.cProbabilistic',
-        sources=[
-            'interleaving/cmethods/probabilistic.pyx',
-        ],
-        language="c++",
-    ),
-    Extension(
-        'interleaving.cOptimized',
-        sources=[
-            'interleaving/cmethods/optimized.pyx',
-        ],
-        language="c++",
-    ),
-    Extension(
-        'interleaving.cRoughlyOptimized',
-        sources=[
-            'interleaving/cmethods/roughly_optimized.pyx',
-        ],
-        language="c++",
-    ),
-]
+include_dirs = []
+cmdclass = {'test': PyTest }
+ext_modules = []
+try:
+    import numpy
+    from Cython.Distutils import build_ext
+    include_dirs.append(numpy.get_include())
+    cmdclass['build_ext'] = build_ext
+    ext_modules.append(Extension('interleaving.cProbabilistic',
+            sources=['interleaving/cmethods/probabilistic.pyx'],
+            language="c++"))
+    ext_modules.append(Extension('interleaving.cOptimized',
+            sources=['interleaving/cmethods/optimized.pyx'],
+            language="c++"))
+    ext_modules.append(Extension('interleaving.cRoughlyOptimized',
+            sources=['interleaving/cmethods/roughly_optimized.pyx'],
+            language="c++"))
+except ImportError:
+    pass
 
 setup(
     name = "interleaving",
@@ -49,7 +43,6 @@ setup(
     url = "https://github.com/mpkato/interleaving",
     setup_requires = [
         'numpy',
-        'cython'
     ],
     install_requires = [
         'numpy',
@@ -59,6 +52,6 @@ setup(
     ],
     tests_require=['pytest'],
     ext_modules=ext_modules,
-    include_dirs=[numpy.get_include()],
-    cmdclass = {'test': PyTest, 'build_ext': build_ext}
+    include_dirs=include_dirs,
+    cmdclass=cmdclass
 )
