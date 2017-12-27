@@ -65,7 +65,7 @@ class Probabilistic(InterleavingMethod):
             self._non_zero_index = set(range(len(self.numerators)))
 
         def sample(self):
-            if self.denominator == 0:
+            if len(self._non_zero_index) == 0:
                 return None
             p = np.random.rand() * self.denominator
             cum = 0.0
