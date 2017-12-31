@@ -53,9 +53,7 @@ class Optimized(InterleavingMethod):
         # self._rankings (sampled rankings) is obtained here
         res = self._compute_probabilities(lists, self._rankings)
         is_success, self._probabilities, _ = res
-        self._probabilities = self._probabilities.astype(np.float64)
         self._probabilities /= np.sum(self._probabilities)
-        print(self._probabilities.dtype)
         if not is_success:
             raise ValueError('Optimization failed')
 
