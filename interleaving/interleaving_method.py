@@ -78,10 +78,8 @@ class InterleavingMethod(object):
         Return an instance of Ranking
         '''
         if self.sample_num:
-            try:
-                i = np.argmax(np.random.multinomial(1, self._probabilities))
-            except ValueError:
-                raise ValueError("SUM PROB: %s" % str(self._probabilities))
+            self._probabilities /= (1.0 + 1.0E-12) # avoid ValueError
+            i = np.argmax(np.random.multinomial(1, self._probabilities))
             return self._rankings[i]
         else:
             return self._sample(self.max_length, self.lists)
