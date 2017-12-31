@@ -1,8 +1,12 @@
 import interleaving as il
 import numpy as np
-np.random.seed(0)
+import pytest
 
 class TestMethods(object):
+
+    @pytest.yield_fixture(autouse=True)
+    def fix_seed(self):
+        np.random.seed(0)
 
     def assert_almost_equal(self, a, b, error_rate=0.01):
         assert abs(a-b) < error_rate

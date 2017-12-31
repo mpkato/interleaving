@@ -8,8 +8,8 @@ class Simulator(object):
     A simulator based on a learning to rank dataset.
 
     Args:
-        dataset_filepath:
-            path to the file including relevance grade and
+        dataset_filepaths:
+            paths to the file including relevance grade and
             features in the format shown below:
             <line>    .=. <target> qid:<qid> <feature>:<value> <feature>:<value> ... <feature>:<value> # <info>
             <target>  .=. <positive integer>
@@ -21,19 +21,21 @@ class Simulator(object):
         topk:             the number of documents shown to users in interleaving
     '''
 
-    def __init__(self, dataset_filepath, query_sample_num, topk=10):
+    def __init__(self, dataset_filepaths, query_sample_num, topk=10):
         self.docs = defaultdict(list)
-        with open(dataset_filepath) as f:
-            for line in f:
-                d = Document.readline(line)
-                self.docs[d.qid].append(d)
+        for dataset_filepath in dataset_filepaths:
+            with open(dataset_filepath) as f:
+                for line in f:
+                    d = Document.readline(line)
+                    self.docs[d.qid].append(d)
         self.query_sample_num = query_sample_num
         self.topk = topk
 
     def ndcg(self, rankers, cutoff):
         '''
-        rankers: instances of Ranker
-        cutoff:  cutoff for nDCG
+        Args:
+            rankers: instances of Ranker
+            cutoff:  cutoff for nDCG
         '''
         result = defaultdict(list)
         for q in self.docs:
@@ -48,16 +50,15 @@ class Simulator(object):
             result[idx] = np.average(result[idx])
         return result
 
-    def evaluate(self, rankers, user, method, sample_num=None):
+    def evaluate(self, rankers, user, method):
         '''
         Args:
-        rankers: instances of Ranker to be compared
-        user: an instance of User that is assumed in the simulation
-        method: a class of intereaving method used in the simulation
+            rankers: instances of Ranker to be compared
+            user: an instance of User that is assumed in the simulation
+            method: a class of intereaving method used in the simulation
 
         Returns:
-        Return a dict indicating the number of pairs (i, j)
-        where i won j.
+            Return a list of dicts storing the score of each ranker.
         '''
         methods = {}
         for q in self.docs:
@@ -68,8 +69,7 @@ class Simulator(object):
                 res = ranker.rank(documents)
                 res = [id(d) for d in res]
                 ranked_lists.append(res)
-            methods[q] = method(ranked_lists,
-                max_length=topk, sample_num=sample_num)
+            methods[q] = method(ranked_lists, max_length=topk)
 
         result = []
         queries = np.random.choice(list(self.docs.keys()),

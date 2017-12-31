@@ -3,7 +3,6 @@ from interleaving import BalancedRanking
 import json
 import numpy as np
 import pytest
-np.random.seed(0)
 from .test_methods import TestMethods
 
 class TestBalanced(TestMethods):
@@ -19,7 +18,7 @@ class TestBalanced(TestMethods):
         self.interleave(il.Balanced, [[1, 2], [3, 4]], 3, [(1, 3, 2), (3, 1, 4)])
 
     def test_init_sampling(self):
-        b = il.Balanced([[1, 2], [2, 3]], sample_num=100)
+        b = il.Balanced([[1, 2], [2, 3]], sample_num=1000)
         rankings, probabilities = zip(*b.ranking_distribution)
         assert set([(1, 2), (2, 1)]) == set([tuple(r) for r in rankings])
         self.assert_almost_equal(*probabilities)

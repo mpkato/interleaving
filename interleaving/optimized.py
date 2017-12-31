@@ -177,7 +177,7 @@ class Optimized(InterleavingMethod):
         return var
 
     @classmethod
-    def _compute_scores(cls, ranking, clicks):
+    def compute_scores(cls, ranking, clicks):
         '''
         ranking: an instance of Ranking
         clicks: a list of indices clicked by a user
