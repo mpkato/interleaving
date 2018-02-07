@@ -5,10 +5,10 @@ import sys
 
 
 class RoughlyOptimized(Optimized):
-    '''x = (p_1, p_2, ..., p_eta, lambda_1, lambda_2, ..., lambda_n_l)'''
-    def __init__(self, lists, max_length=None, sample_num=None,
-        credit_func='inverse', bias_weight=1.0):
-        '''
+    '''
+    Roughly Optimized Interleaving [Manabe et al. 2017]
+
+    Args:
         lists: lists of document IDs
         max_length: the maximum length of resultant interleaving.
                     If this is None (default), it is set to the minimum length
@@ -20,19 +20,26 @@ class RoughlyOptimized(Optimized):
                     is called.
         credit_func: either 'inverse' (1/rank) or 'negative' (-rank)
         bias_weight: the weight for the bias in the objective function
-        '''
+        is_always_loose: always use the loose solution if True;
+                    otherwise, try to solve the strict problem first,
+                    and use the loose solution only if the strict one fails.
+    '''
+    def __init__(self, lists, max_length=None, sample_num=None,
+        credit_func='inverse', bias_weight=1.0, is_always_loose=False):
         self.bias_weight = bias_weight
+        self._is_always_loose = is_always_loose
         super(RoughlyOptimized, self).__init__(lists,
             max_length=max_length, sample_num=sample_num,
             credit_func=credit_func)
 
     def _compute_probabilities(self, lists, rankings):
-        try:
-            is_success, x, f = super()._compute_probabilities(lists, rankings)
-            if is_success:
-                return is_success, x, f
-        except ValueError:
-            pass
+        if not self._is_always_loose:
+            try:
+                is_success, x, f = super()._compute_probabilities(lists, rankings)
+                if is_success:
+                    return is_success, x, f
+            except ValueError:
+                pass
         return self._compute_probabilities_loosely(lists, rankings, self.bias_weight)
 
     def _compute_probabilities_loosely(self,

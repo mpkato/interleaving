@@ -23,34 +23,33 @@ class RoughlyOptimized(Optimized):
                     initialization, one of which is returned when `interleave`
                     is called.
         credit_func: either 'inverse' (1/rank) or 'negative' (-rank)
+        bias_weight: the weight for the bias in the objective function
         is_always_loose: always use the loose solution if True;
                     otherwise, try to solve the strict problem first,
                     and use the loose solution only if the strict one fails.
     '''
-
     def __init__(self, lists, max_length=None, sample_num=None,
-        credit_func='inverse', is_always_loose=False):
+        credit_func='inverse', bias_weight=1.0, is_always_loose=False):
+        self.bias_weight = bias_weight
         self._is_always_loose = is_always_loose
         super(RoughlyOptimized, self).__init__(lists,
             max_length=max_length, sample_num=sample_num,
             credit_func=credit_func)
 
     def _compute_probabilities(self, lists, rankings):
-        if self._is_always_loose:
-            return self._compute_probabilities_loosely(lists, rankings)
-
-        try:
-            is_success, x, f = super()._compute_probabilities(lists, rankings)
-            if is_success:
-                return is_success, x, f
-        except ValueError:
-            pass
-        return self._compute_probabilities_loosely(lists, rankings)
+        if not self._is_always_loose:
+            try:
+                is_success, x, f = super()._compute_probabilities(lists, rankings)
+                if is_success:
+                    return is_success, x, f
+            except ValueError:
+                pass
+        return self._compute_probabilities_loosely(lists, rankings, self.bias_weight)
 
     def _compute_probabilities_loosely(self,
                                        lists,
                                        rankings,
-                                       bias_weight=1.0):
+                                       bias_weight):
         l_l = len(lists)  # Number of original lists (rankers, teams)
         eta = len(rankings)  # Number of samples
         m_l = self.max_length  # Consider unbiasedness on top-(1..m_l)
