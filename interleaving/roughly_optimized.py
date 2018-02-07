@@ -6,6 +6,26 @@ import sys
 
 class RoughlyOptimized(Optimized):
     '''x = (p_1, p_2, ..., p_eta, lambda_1, lambda_2, ..., lambda_n_l)'''
+    def __init__(self, lists, max_length=None, sample_num=None,
+        credit_func='inverse', bias_weight=1.0):
+        '''
+        lists: lists of document IDs
+        max_length: the maximum length of resultant interleaving.
+                    If this is None (default), it is set to the minimum length
+                    of the given lists.
+        sample_num: If this is None (default), an interleaved ranking is
+                    generated every time when `interleave` is called.
+                    Otherwise, `sample_num` rankings are sampled in the
+                    initialization, one of which is returned when `interleave`
+                    is called.
+        credit_func: either 'inverse' (1/rank) or 'negative' (-rank)
+        bias_weight: the weight for the bias in the objective function
+        '''
+        self.bias_weight = bias_weight
+        super(RoughlyOptimized, self).__init__(lists,
+            max_length=max_length, sample_num=sample_num,
+            credit_func=credit_func)
+
     def _compute_probabilities(self, lists, rankings):
         try:
             is_success, x, f = super()._compute_probabilities(lists, rankings)
@@ -13,12 +33,12 @@ class RoughlyOptimized(Optimized):
                 return is_success, x, f
         except ValueError:
             pass
-        return self._compute_probabilities_loosely(lists, rankings)
+        return self._compute_probabilities_loosely(lists, rankings, self.bias_weight)
 
     def _compute_probabilities_loosely(self,
                                        lists,
                                        rankings,
-                                       bias_weight=1.0):
+                                       bias_weight):
         l_l = len(lists)  # Number of original lists (rankers, teams)
         eta = len(rankings)  # Number of samples
         m_l = self.max_length  # Consider unbiasedness on top-(1..m_l)
