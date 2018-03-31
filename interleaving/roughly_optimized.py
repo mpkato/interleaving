@@ -8,7 +8,7 @@ class RoughlyOptimized(Optimized):
     '''x = (p_1, p_2, ..., p_eta, lambda_1, lambda_2, ..., lambda_n_l)'''
     def _compute_probabilities(self, lists, rankings):
         try:
-            is_success, x, f = super()._compute_probabilities(lists, rankings)
+            is_success, x, f = super(RoughlyOptimized, self)._compute_probabilities(lists, rankings)
             if is_success:
                 return is_success, x, f
         except ValueError:
