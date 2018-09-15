@@ -24,22 +24,22 @@ class PairwisePreference(InterleavingMethod):
                 break
 
             # pairwise preference just performs uniform sampling from candidates
-            sampled_document = np.random.choice(candidates)
-            result.append(sampled_document)
+            sampled_index = np.random.randint(len(candidates))
+            result.append(candidates[sampled_index])
 
         return result
 
     def _current_candidates(self, lists, focused_rank, selected_documents):
         """
         Candidates = { documents at a higher rank than `focused_rank` in any rankings  }
-                     \ { selected documents }
+                     - { selected documents }
         """
         candidates = set()
         for l in lists:
             candidates.update(l[:focused_rank+1]) # documents at a higher rank
 
         candidates -= set(selected_documents) # exclude the selected documents
-        return candidates
+        return list(candidates)
 
     @classmethod
     def compute_scores(cls, ranking, clicks):
