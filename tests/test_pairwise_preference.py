@@ -69,5 +69,137 @@ class TestPairwisePreference(TestMethods):
                 (5, 1), (5, 2), (5, 3), (5, 4),         (5, 6), 
             ])
 
-    def test_evaluate(self):
-        pass
+    def test_find_preferences(self):
+        ranking = [0, 1, 2, 3, 4]
+
+        clicks = []
+        prefs = il.PairwisePreference._find_preferences(ranking, clicks)
+        assert set(prefs) == set()
+
+        clicks = [0]
+        prefs = il.PairwisePreference._find_preferences(ranking, clicks)
+        assert set(prefs) == set([(0, 1)])
+
+        clicks = [2]
+        prefs = il.PairwisePreference._find_preferences(ranking, clicks)
+        assert set(prefs) == set([
+            (2, 0), (2, 1), (2, 3)
+        ])
+
+        clicks = [1, 3]
+        prefs = il.PairwisePreference._find_preferences(ranking, clicks)
+        assert set(prefs) == set([
+            (1, 0), (1, 2),
+            (3, 0), (3, 2), (3, 4)
+        ])
+
+        clicks = [4]
+        prefs = il.PairwisePreference._find_preferences(ranking, clicks)
+        assert set(prefs) == set([
+            (4, 0), (4, 1), (4, 2), (4, 3)
+        ])
+
+    def test_compute_scores(self):
+        rankings = [
+            [0, 1, 2, 3, 4],
+            [0, 1, 2, 4, 3],
+            [2, 1, 4, 0, 3],
+        ]
+        multileaved_ranking = [0, 1, 2, 3, 4]
+        ranking = PairwisePreferenceRanking(rankings, multileaved_ranking)
+
+        scores = il.PairwisePreference.compute_scores(ranking, [0])
+        assert scores[0] == 0.0
+        assert scores[1] == 0.0
+        assert scores[2] == 0.0
+
+        scores = il.PairwisePreference.compute_scores(ranking, [1])
+        # (1, 0), (1, 2)
+        w = 1 - 1/2
+        assert scores[0] == 1 / w
+        assert scores[1] == 1 / w
+        assert scores[2] == - 1 / w
+
+        scores = il.PairwisePreference.compute_scores(ranking, [2])
+        # (2, 0), (2, 1), (2, 3)
+        w20 = 1
+        w21 = 1 - 1/2
+        assert scores[0] == - w20 - 1 / w21
+        assert scores[1] == - w20 - 1 / w21
+        assert scores[2] ==   w20 + 1 / w21
+
+    def test_find_highest_rank_for_all(self):
+        rankings = [
+            [0, 1, 2, 3, 4],
+            [4, 3, 2, 1, 0],
+        ]
+        rank = il.PairwisePreference._find_highest_rank_for_all(rankings, 0, 1)
+        assert rank == 1
+
+        rank = il.PairwisePreference._find_highest_rank_for_all(rankings, 1, 2)
+        assert rank == 2
+
+        rank = il.PairwisePreference._find_highest_rank_for_all(rankings, 0, 4)
+        assert rank == 0
+
+    def test_find_highest_rank_for_any(self):
+        rankings = [
+            [0, 1, 2, 3, 4],
+            [4, 3, 2, 1, 0],
+        ]
+        rank = il.PairwisePreference._find_highest_rank_for_any(rankings, 0, 1)
+        assert rank == 0
+
+        rank = il.PairwisePreference._find_highest_rank_for_any(rankings, 1, 2)
+        assert rank == 1
+
+        rank = il.PairwisePreference._find_highest_rank_for_any(rankings, 0, 4)
+        assert rank == 0
+
+    def test_find_highest_rank_for_ranking(self):
+        ranking = [0, 1, 2, 3, 4]
+
+        rank = il.PairwisePreference._find_highest_rank_for_ranking(ranking, 0, 1)
+        assert rank == 0
+
+        rank = il.PairwisePreference._find_highest_rank_for_ranking(ranking, 1, 2)
+        assert rank == 1
+
+        rank = il.PairwisePreference._find_highest_rank_for_ranking(ranking, 2, 4)
+        assert rank == 2
+
+    def test_get_rank(self):
+        ranking = [0, 1, 2, 3, 4]
+
+        rank = il.PairwisePreference._get_rank(ranking, 2)
+        assert rank == 2
+
+        rank = il.PairwisePreference._get_rank(ranking, 4)
+        assert rank == 4
+
+        rank = il.PairwisePreference._get_rank(ranking, 6)
+        assert rank == 5
+
+    def test_compute_probability(self):
+        rankings = [
+            [0, 1, 2, 3, 4],
+            [4, 3, 2, 1, 0],
+        ]
+        sup, inf = 2, 1
+        r_above = il.PairwisePreference._find_highest_rank_for_all(rankings, sup, inf)
+        assert r_above == 2
+        w = il.PairwisePreference._compute_probability(r_above, rankings, sup, inf)
+        ideal_w = 1 - 1 / (4 - 1)
+        assert w == ideal_w
+
+        rankings = [
+            [0, 1, 2, 3, 4],
+            [0, 1, 2, 4, 3],
+            [2, 1, 4, 0, 3],
+        ]
+        sup, inf = 1, 3
+        r_above = il.PairwisePreference._find_highest_rank_for_all(rankings, sup, inf)
+        assert r_above == 3
+        w = il.PairwisePreference._compute_probability(r_above, rankings, sup, inf)
+        ideal_w = (1 - 1 / (3 - 1)) * (1 - 1 / (4 - 2))
+        assert w == ideal_w
