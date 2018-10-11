@@ -128,6 +128,12 @@ class TestPairwisePreference(TestMethods):
         assert scores[1] == - w20 - 1 / w21
         assert scores[2] ==   w20 + 1 / w21
 
+        scores = il.PairwisePreference.compute_scores(ranking, [1, 2])
+        # (1, 0), (2, 0), (2, 3)
+        assert scores[0] == -1
+        assert scores[1] == -1
+        assert scores[2] ==  1
+
     def test_find_highest_rank_for_all(self):
         rankings = [
             [0, 1, 2, 3, 4],
