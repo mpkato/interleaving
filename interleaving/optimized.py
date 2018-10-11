@@ -22,7 +22,7 @@ class Optimized(InterleavingMethod):
     '''
 
     def __init__(self, lists, max_length=None, sample_num=None,
-        credit_func='inverse'):
+        credit_func='inverse', secure_sampling=False):
         '''
         lists: lists of document IDs
         max_length: the maximum length of resultant interleaving.
@@ -44,6 +44,7 @@ class Optimized(InterleavingMethod):
             self._credit_func = lambda x: -x
         else:
             raise ValueError('credit_func should be either inverse or negative')
+        self._secure_sampling = secure_sampling
         super(Optimized, self).__init__(lists,
             max_length=max_length, sample_num=sample_num)
         # self._rankings (sampled rankings) is obtained here
@@ -58,9 +59,16 @@ class Optimized(InterleavingMethod):
         Sample `sample_num` rankings
         '''
         distribution = {}
-        while len(distribution) < self.sample_num:
-            ranking = self._sample(self.max_length, self.lists)
-            distribution[ranking] = 1.0 / self.sample_num
+        if self._secure_sampling:
+            rankings = set()
+            for _ in range(self.sample_num):
+                rankings.add(self._sample(self.max_length, self.lists))
+            for ranking in rankings:
+                distribution[ranking] = 1.0 / len(rankings)
+        else:
+            while len(distribution) < self.sample_num:
+                ranking = self._sample(self.max_length, self.lists)
+                distribution[ranking] = 1.0 / self.sample_num
         self._rankings, self._probabilities = zip(*distribution.items())
 
 

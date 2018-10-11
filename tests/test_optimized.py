@@ -20,6 +20,12 @@ class TestOptimized(TestMethods):
         assert (2, 1) in samples
         assert (2, 3) in samples
 
+    def test_secure_sampling(self):
+        b = il.Optimized([[1, 2], [2, 3]], sample_num=1000, secure_sampling=True)
+        b._sample_rankings()
+        assert [[1, 2], [2, 1], [2, 3]] == sorted(b._rankings)
+        assert [1.0 / 3] * 3 == list(b._probabilities)
+
     def test_dump(self, tmpdir):
         tmpfile = str(tmpdir) + '/optimized.json'
         b = il.Optimized([[1, 2], [2, 3]], sample_num=3)

@@ -86,6 +86,13 @@ $ python setup.py install
 []
 ```
 
+## Note
+The ranking sampling algorithm of optimized multileaving<sup>7</sup> and roughly optimized multileaving<sup>9</sup> may take a long time or even runs into an inifinite loop. To work around this problem, this implementation supports `secure_sampling` flag to limit the number of sampling attempts to `sample_num`.
+```python
+>>> import interleaving
+>>> interleaving.Optimized([[1, 2], [2, 3]], sample_num=4, secure_sampling=True)
+```
+
 ## References
 1. Chapelle et al. "Large-scale Validation and Analysis of Interleaved Search Evaluation." ACM TOIS 30.1 (2012): 6.
 2. Schuth, Hofmann, Radlinski. "Predicting Search Satisfaction Metrics with Interleaved Comparisons." SIGIR 2015.
