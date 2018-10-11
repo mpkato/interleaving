@@ -1,7 +1,7 @@
 from .ranking import ProbabilisticRanking
 from .interleaving_method import InterleavingMethod
 import numpy as np
-import scipy.misc as misc
+import scipy.special as special
 
 
 class Probabilistic(InterleavingMethod):
@@ -212,7 +212,7 @@ class Probabilistic(InterleavingMethod):
             if len(A_prime) > 0:
                 # Use logsumexp to avoid over-flow
                 p_log_all = np.array([p_prime for _, p_prime, _ in A_prime])
-                p_all = np.exp(p_log_all - misc.logsumexp(p_log_all))
+                p_all = np.exp(p_log_all - special.logsumexp(p_log_all))
                 for i, (o_prime, _, a) in enumerate(A_prime):
                     p_prime = p_all[i]
                     o += o_prime * p_prime
