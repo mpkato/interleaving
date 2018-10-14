@@ -25,6 +25,7 @@ This library aims to provide most of the algorithms that have been proposed in t
 - Probabilistic multileaving<sup>8</sup>
 - Optimized multileaving<sup>7</sup>
 - Roughly optimized multileaving<sup>9</sup>
+- Pairwise preference multileaving<sup>10</sup>
 
 Note that probabilistic interleaving and probabilistic multileaving use
 different strategies to select a ranker from which a document is selected.
@@ -103,6 +104,7 @@ The ranking sampling algorithm of optimized multileaving<sup>7</sup> and roughly
 7. Schuth et al. "Multileaved Comparisons for Fast Online Evaluation." CIKM 2014.
 8. Schuth et al. "Probabilistic Multileave for Online Retrieval Evaluation." SIGIR 2015.
 9. Manabe et al. "A Comparative Live Evaluation of Multileaving Methods on a Commercial cQA Search", SIGIR 2017.
+10. Oosterhuis and de Rijke. "Sensitive and Scalable Online Evaluation with Theoretical Guarantees", CIKM 2017.
 
 ## License
 MIT License (see LICENSE file).
