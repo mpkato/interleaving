@@ -27,7 +27,7 @@ jobs:
     # To see the list of pre-built images that CircleCI provides for most common languages see
     # https://circleci.com/docs/2.0/circleci-images/
     docker:
-    - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
+    - image: circleci/python:3.6.6-jessie-node-browsers-legacy
       command: /sbin/init
     steps:
     # Machine Setup
@@ -41,33 +41,33 @@ jobs:
     # Dependencies
     #   This would typically go in either a build or a build-and-test job when using workflows
     # Restore the dependency cache
+    #
+    - run: sudo chown -R circleci:circleci /usr/local/bin
+    - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
     - restore_cache:
         keys:
         # This branch if available
-        - v1-dep-{{ .Branch }}-
-        # Default branch if not
-        - v1-dep-master-
-        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-        - v1-dep-
+        - v2-dep-{{ .Branch }}
+    # Install a solver for PuLP
+    - run: sudo apt-get update && sudo apt-get install coinor-cbc
     # This is based on your 1.0 configuration file or project settings
-    - run: pip install --upgrade setuptools
-    - run: pip install --upgrade pip
+    - run: sudo pip install --upgrade setuptools
+    - run: sudo pip install --upgrade pip
+    - run:
+        command: |  # use pipenv to install dependencies
+          sudo pip install pipenv
+          pipenv install
     # The following line was run implicitly in your 1.0 builds based on what CircleCI inferred about the structure of your project. In 2.0 you need to be explicit about which commands should be run. In some cases you can discard inferred commands if they are not relevant to your project.
-    - run: python setup.py install
+    - run: pipenv run python setup.py install
     # Save dependency cache
     - save_cache:
-        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        key: v2-dep-{{ .Branch }}
         paths:
         # This is a broad list of cache paths to include many possible development environments
         # You can probably delete some of these entries
-        - vendor/bundle
-        - ~/virtualenvs
-        - ~/.m2
-        - ~/.ivy2
-        - ~/.bundle
-        - ~/.go_workspace
-        - ~/.gradle
-        - ~/.cache/bower
+        - ".venv"
+        - "/usr/local/bin"
+        - "/usr/local/lib/python3.6/site-packages"
     # Test
     #   This would typically be a build job when using workflows, possibly combined with build
     # The following line was run implicitly in your 1.0 builds based on what CircleCI inferred about the structure of your project. In 2.0 you need to be explicit about which commands should be run. In some cases you can discard inferred commands if they are not relevant to your project.
@@ -76,7 +76,7 @@ jobs:
     # If run your tests in parallel containers you can use this third party nose plugin
     # https://github.com/dlanger/nose-parallel
     # If you use django you can switch to the nose django runner to make use of this.
-    - run: echo "replace this with your test commands - see config comments" && false
+    - run: pipenv run python setup.py test
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # Save test results

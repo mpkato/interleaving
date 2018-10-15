@@ -5,12 +5,14 @@ from setuptools.command.test import test as TestCommand
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
-        self.test_args = []
+        self.test_args = ["./tests"]
         self.test_suite = True
 
     def run_tests(self):
+        import sys
         import pytest
-        pytest.main(self.test_args)
+        exit_code = pytest.main(self.test_args)
+        sys.exit(exit_code)
 
 setup(
     name = "interleaving",
