@@ -1,0 +1,8 @@
+name: 2003_np_dataset
+folderpath: Gov/Feature_min/2003_np_dataset/Fold*
+rankers:
+    BM25: 25
+    TF.IDF: 15
+    LMIR.JM: 40
+    Hyperlink: 56 # Inlink number
+    PageRank: 51

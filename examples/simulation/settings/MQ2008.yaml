@@ -1,0 +1,8 @@
+name: MQ2008
+folderpath: MQ2008/Fold*
+rankers:
+    BM25: 25
+    TF.IDF: 15
+    LMIR.JM: 40
+    Hyperlink: 42 # Inlink number
+    PageRank: 41

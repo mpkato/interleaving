@@ -1,0 +1,8 @@
+name: OHSUMED
+folderpath: OHSUMED/Feature-min/Fold*
+rankers:
+    BM25: 41
+    TF.IDF: 39
+    LMIR.JM: 44
+    TF: 31
+    IDF: 35
