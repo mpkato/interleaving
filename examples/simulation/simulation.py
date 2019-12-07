@@ -14,7 +14,7 @@ import multiprocessing as multi
 
 
 ITERATION = 25
-ITER_PER_QUERY = 1000
+ITER_PER_QUERY = 10000
 EVALUATION_SPAN = 100
 TOPK = 10
 CLICK_PROBS = {
