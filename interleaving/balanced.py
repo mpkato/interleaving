@@ -47,6 +47,9 @@ class Balanced(InterleavingMethod):
         '''
         a, b = lists[0], lists[1]
         is_a_first = np.random.randint(0, 2) == 0
+
+        print('is_a_first : ' + str(is_a_first))
+
         result = BalancedRanking()
         k_a = 0
         k_b = 0
@@ -55,10 +58,12 @@ class Balanced(InterleavingMethod):
             if (k_a < k_b) or (k_a == k_b and is_a_first):
                 if not a[k_a] in result:
                     result.append(a[k_a])
+                    print("from: a, add: " + str(a[k_a]))
                 k_a += 1
             else:
                 if not b[k_b] in result:
                     result.append(b[k_b])
+                    print("from: b, add: " + str(b[k_b]))
                 k_b += 1
         result.a = a
         result.b = b
